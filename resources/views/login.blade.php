@@ -26,7 +26,7 @@
 
             <span class="brand-subtitle">
                 GAMING
-            </apan>
+            </span>
         </div>
 
         <div class="login-heading">
