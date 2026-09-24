@@ -841,9 +841,114 @@ body {
     color: #ef4444;
 }
 
+.badge-ok {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
 .badge-warning {
     background: rgba(245, 158, 11, 0.15);
     color: #f59e0b;
+}
+
+.user-avatar {
+    overflow: hidden;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.user-profile {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.profile-card {
+    position: relative;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+
+    width: 280px;
+
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+    padding: 20px;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+
+    z-index: 50;
+}
+
+.profile-dropdown.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.profile-dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-email {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.profile-dropdown-body {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-field {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+.profile-field span {
+    color: var(--muted);
+}
+
+.profile-upload-label {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--accent);
+    cursor: pointer;
+}
+
+.profile-upload-label input {
+    display: none;
+}
+
+.profile-dropdown-footer {
+    padding-top: 12px;
 }
 
 /* Evita que el autocompletado del navegador rompa el estilo oscuro */

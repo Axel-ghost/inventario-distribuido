@@ -19,8 +19,11 @@
         <main class="dashboard-content">
 
             <header class="dashboard-header">
-                <h2>Productos</h2>
-                <p>Catálogo de productos registrados</p>
+                <div>
+                    <h2>Productos</h2>
+                    <p>Catálogo de productos registrados</p>
+                </div>
+                <x-profile-card />
             </header>
 
             <table class="data-table">

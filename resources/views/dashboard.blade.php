@@ -35,18 +35,7 @@
                 </div>
 
 
-                <div class="user-profile">
-
-                    <div class="user-avatar">
-                        A
-                    </div>
-
-                    <div class="user-info">
-                        <strong>Administrador</strong>
-                        <span>Admin</span>
-                    </div>
-
-                </div>
+                <x-profile-card />
 
             </header>
 

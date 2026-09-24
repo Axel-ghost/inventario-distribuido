@@ -36,19 +36,5 @@
 
     </nav>
 
-    <div class="sidebar-footer">
-        <p style="color: var(--muted); font-size: 13px; margin-bottom: 8px;">
-            {{ Auth::user()->name }} {{ Auth::user()->apellidos }}
-        </p>
-
-        <form method="POST" action="/logout">
-            @csrf
-            <button type="submit" class="nav-item" style="width: 100%; background: none; border: none; cursor: pointer; text-align: left;">
-                <span>⏻</span>
-                Cerrar sesión
-            </button>
-        </form>
-    </div>
-
 </aside>
 </div>
