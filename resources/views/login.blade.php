@@ -37,39 +37,41 @@
             </p>
         </div>
 
-        <form>
+    <form method="POST" action="/login">
+    @csrf
 
-            <div class="input-group">
-                <label for="username">
-                    Usuario
-                </label>
+    @if ($errors->any())
+        <p style="color: #ef4444; margin-bottom: 16px;">
+            {{ $errors->first() }}
+        </p>
+    @endif
 
-                <input 
-                    type="text"
-                    id="username"
-                    name="username"
-                    placeholder="Ingresa tu usuario"
-                    >
-            </div>
+    <div class="input-group">
+        <label for="usuario">Usuario</label>
+        <input
+            type="text"
+            id="usuario"
+            name="usuario"
+            placeholder="Ingresa tu usuario"
+            value="{{ old('usuario') }}"
+        >
+    </div>
 
-            <div class="input-group">
-                <label for="password">
-                    Contraseña
-                </label>
+    <div class="input-group">
+        <label for="password">Contraseña</label>
+        <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Ingresa tu contraseña"
+        >
+    </div>
 
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Ingresa tu contraseña"
-                    >
-            </div>
+    <button type="submit" class="login-button">
+        INICIAR SESION
+    </button>
 
-            <button type="submit" class="login-button">
-                INICIAR SESION
-            </button>
-            
-        </form>
+    </form>
 
         <p class="system-status">
              ▫️Sistema seguro

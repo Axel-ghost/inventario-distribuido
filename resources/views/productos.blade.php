@@ -13,43 +13,7 @@
     
     <div class="dashboard">
 
-        <aside class="sidebar">
-
-            <div class="sidebar-brand">
-                <span class="brand-line"></span>
-                <h1>CoreBuild</h1>
-                <span>GAMING</span>
-            </div>
-
-            <nav class="side-nav">
-
-                <p class="nav-title">PRINCIPAL</p>
-
-                <a href="/dashboard" class="nav-item active">
-                    <span>◈</span>
-                    Dashboard
-                </a>
-
-                <a href="/productos" class="nav-item active">
-                    <span>▣</span>
-                    Productos
-                </a>
-
-                <a href="/inventario" class="nav-item">
-                    <span>▤</span>
-                    Inventario
-                </a>
-
-                <p class="nav-title">OPERACIONES</p>
-
-                <a href="/ventas" class="nav-item">
-                    <span>▰</span>
-                    Ventas
-                </a>
-
-            </nav>
-
-        </aside>
+    <x-sidebar active-page="productos" />
 
         <!-- CONTENIDO -->
         <main class="dashboard-content">

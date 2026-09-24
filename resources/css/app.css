@@ -45,7 +45,15 @@ body {
             rgba(139, 92, 246, 0.12),
             transparent 30%
         ),
-        #05080d;
+        linear-gradient(
+            rgba(5, 8, 13, 0.4),
+            rgba(5, 8, 13, 0.4)
+        ),
+        url('/images/pexels-atahandemir-33888376.jpg');
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 /* Luces ambientales */
@@ -86,13 +94,13 @@ body {
 
     position: relative;
 
-    background: var(--card);
+    background: rgba(12, 18, 27, 0.00);
 
     border: 1px solid var(--border);
 
     border-radius: 24px;
 
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(5px);
 
     box-shadow:
         0 25px 80px rgba(0, 0, 0, 0.45);
@@ -836,4 +844,15 @@ body {
 .badge-warning {
     background: rgba(245, 158, 11, 0.15);
     color: #f59e0b;
+}
+
+/* Evita que el autocompletado del navegador rompa el estilo oscuro */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text);
+    -webkit-box-shadow: 0 0 0px 1000px rgba(12, 18, 27, 0.9) inset;
+    box-shadow: 0 0 0px 1000px rgba(12, 18, 27, 0.9) inset;
+    transition: background-color 5000s ease-in-out 0s;
 }
