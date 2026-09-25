@@ -961,3 +961,220 @@ input:-webkit-autofill:focus {
     box-shadow: 0 0 0px 1000px rgba(12, 18, 27, 0.9) inset;
     transition: background-color 5000s ease-in-out 0s;
 }
+
+/* BOTÓN CON ANIMACIÓN DE PROCESO (barra + camión) */
+
+.btn-process {
+    position: relative;
+    width: 100%;
+    min-width: 220px;
+    height: 52px;
+
+    border: none;
+    border-radius: 14px;
+
+    background: var(--accent);
+    color: #05080d;
+
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+
+    cursor: pointer;
+    overflow: hidden;
+
+    transition: background 0.3s ease;
+}
+
+.btn-process:disabled {
+    cursor: not-allowed;
+}
+
+.btn-process .btn-label {
+    position: relative;
+    z-index: 2;
+    transition: opacity 0.2s ease;
+}
+
+.btn-process.is-processing .btn-label,
+.btn-process.is-success .btn-label {
+    opacity: 0;
+}
+
+.btn-process-track {
+    position: absolute;
+    inset: 0;
+
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.btn-process.is-processing .btn-process-track {
+    opacity: 1;
+}
+
+.btn-process-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0%;
+
+    background: rgba(5, 8, 13, 0.18);
+}
+
+.btn-process-truck {
+    position: absolute;
+    top: 50%;
+    left: 6px;
+    transform: translateY(-50%) scaleX(-1);
+    font-size: 20px;
+    z-index: 3;
+}
+
+.btn-process.is-success {
+    background: #22c55e;
+}
+
+.btn-process-success {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    color: #05080d;
+    font-weight: 700;
+
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s ease;
+    z-index: 4;
+}
+
+.btn-process.is-success .btn-process-success {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.venta-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.venta-buscador {
+    position: relative;
+}
+
+.venta-buscador input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.venta-sugerencias {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+
+    overflow: hidden;
+    z-index: 30;
+}
+
+.venta-sugerencias.open {
+    display: block;
+}
+
+.venta-sugerencia {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+}
+
+.venta-sugerencia:last-child {
+    border-bottom: none;
+}
+
+.venta-sugerencia:hover {
+    background: rgba(101, 216, 255, 0.08);
+}
+
+.venta-sugerencia span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.venta-sugerencia-vacia {
+    padding: 16px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.venta-cantidad-input {
+    width: 60px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text);
+    text-align: center;
+}
+
+.venta-quitar {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.venta-resumen {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+}
+
+.venta-total {
+    display: flex;
+    flex-direction: column;
+}
+
+.venta-total span {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.venta-total strong {
+    font-size: 26px;
+}
+
+.venta-resumen x-order-button,
+.venta-resumen .btn-process {
+    max-width: 220px;
+}
