@@ -13,12 +13,13 @@ return new class extends Migration
             $table->string('codigo')->unique();
             $table->string('nombre');
             $table->text('descripcion')->nullable();
-            $table->string('categoria')->nullable();
+            $table->foreignId('id_categoria')->constrained();
+            $table->foreignId('id_proveedor')->constrained();
             $table->decimal('precio_compra', 10, 2);
             $table->decimal('precio_venta', 10, 2);
             $table->integer('existencia')->default(0);
             $table->integer('stock_minimo')->default(10);
-            $table->boolean('activo')->default(true);
+            $table->string('estado')->default('Activo');
             $table->timestamps();
         });
     }

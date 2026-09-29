@@ -47,6 +47,10 @@
                 <span>◉</span>
                 Usuarios
             </a>
+            <a href="/CRUD" class="nav-item {{ $activePage === 'crud' ? 'active' : '' }}">
+            <span>▦</span>
+            CRUD
+            </a>
         @endif
 
     </nav>

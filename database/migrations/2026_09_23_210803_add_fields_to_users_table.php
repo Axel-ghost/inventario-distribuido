@@ -13,7 +13,7 @@ return new class extends Migration
             $table->enum('rol', ['administrador', 'vendedor', 'caja', 'almacen'])
                   ->default('vendedor')
                   ->after('email');
-            $table->boolean('activo')->default(true)->after('rol');
+            $table->boolean('estado')->default('true')->after('rol');
         });
     }
 
