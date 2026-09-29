@@ -1178,3 +1178,26 @@ input:-webkit-autofill:focus {
 .venta-resumen .btn-process {
     max-width: 220px;
 }
+
+.form-card {
+    max-width: 520px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+}
+
+.input-group select {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.input-group select option {
+    background: #0c121b;
+    color: #ffffff;
+}
