@@ -88,6 +88,64 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
+        // Alta y edición de productos: administrador y almacén
+    Route::middleware('rol:administrador,almacen')->group(function () {
+
+        Route::get('/productos/crear', function () {
+            return view('productos.crear');
+        });
+
+        Route::post('/productos', function (Request $request) {
+            $data = $request->validate([
+                'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo'],
+                'nombre' => ['required', 'string', 'max:255'],
+                'descripcion' => ['nullable', 'string'],
+                'categoria' => ['nullable', 'string', 'max:100'],
+                'precio_compra' => ['required', 'numeric', 'min:0'],
+                'precio_venta' => ['required', 'numeric', 'min:0'],
+                'existencia' => ['required', 'integer', 'min:0'],
+                'stock_minimo' => ['required', 'integer', 'min:0'],
+            ]);
+
+            $data['activo'] = true;
+
+            Producto::create($data);
+
+            return redirect('/productos')->with('status', 'Producto registrado correctamente.');
+        });
+
+        Route::get('/productos/{producto}/editar', function (Producto $producto) {
+            return view('productos.editar', compact('producto'));
+        });
+
+        Route::put('/productos/{producto}', function (Request $request, Producto $producto) {
+            $data = $request->validate([
+                'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo,' . $producto->id],
+                'nombre' => ['required', 'string', 'max:255'],
+                'descripcion' => ['nullable', 'string'],
+                'categoria' => ['nullable', 'string', 'max:100'],
+                'precio_compra' => ['required', 'numeric', 'min:0'],
+                'precio_venta' => ['required', 'numeric', 'min:0'],
+                'existencia' => ['required', 'integer', 'min:0'],
+                'stock_minimo' => ['required', 'integer', 'min:0'],
+            ]);
+
+            $producto->update($data);
+
+            return redirect('/productos')->with('status', 'Producto actualizado correctamente.');
+        });
+    });
+
+    // Baja lógica de productos: solo administrador
+    Route::middleware('rol:administrador')->group(function () {
+
+        Route::patch('/productos/{producto}/estado', function (Producto $producto) {
+            $producto->update(['activo' => ! $producto->activo]);
+
+            return back()->with('status', 'Estado del producto actualizado.');
+        });
+    });
+
     // Consultar ventas: administrador, vendedor y caja
     Route::middleware('rol:administrador,vendedor,caja')->group(function () {
 
@@ -141,7 +199,7 @@ Route::middleware(['auth'])->group(function () {
             $productos = Producto::where('activo', true)
                 ->where(function ($query) use ($termino) {
                     $query->where('nombre', 'like', "%{$termino}%")
-                          ->orWhere('codigo', 'like', "%{$termino}%");
+                        ->orWhere('codigo', 'like', "%{$termino}%");
                 })
                 ->limit(8)
                 ->get(['id', 'codigo', 'nombre', 'precio_venta', 'existencia']);
