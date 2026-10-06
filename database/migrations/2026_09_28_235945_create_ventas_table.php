@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('ventas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_pedido')->constrained();
+            $table->foreignId('id_pedido')->constrained('pedidos');
             $table->timestamp('fecha')->useCurrent();
             $table->decimal('total');
             $table->string('metodo_pago');
             $table->string('estado')->default('completado');
-            $table->foreignId('id_usuario')->constrained();
+            $table->foreignId('id_usuario')->constrained('users');
             $table->timestamps();
         });
     }

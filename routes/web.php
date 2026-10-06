@@ -2,10 +2,13 @@
 
 use App\Models\Producto;
 use App\Models\User;
+use App\Models\Categoria;
+use App\Models\Proveedor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -24,7 +27,7 @@ Route::post('/login', function (Request $request) {
     if (Auth::attempt(['usuario' => $credentials['usuario'], 'password' => $credentials['password']])) {
         $request->session()->regenerate();
 
-        if (! Auth::user()->activo) {
+        if (! Auth::user()->estado) {
             Auth::logout();
             return back()->withErrors(['usuario' => 'Tu cuenta está desactivada.']);
         }
@@ -74,8 +77,10 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('rol:administrador,vendedor,almacen')->group(function () {
 
         Route::get('/productos', function () {
-            $productos = Producto::all();
-            return view('productos', compact('productos'));
+            $productos = Producto::with('categoria', 'proveedor')->get();
+            $categorias = Categoria::orderBy('nombre')->get();
+            return view('productos', compact('productos', 'categorias'));
+
         });
 
         Route::get('/inventario', function () {
@@ -88,11 +93,13 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-        // Alta y edición de productos: administrador y almacén
+    // Alta y edición de productos: administrador y almacén
     Route::middleware('rol:administrador,almacen')->group(function () {
 
         Route::get('/productos/crear', function () {
-            return view('productos.crear');
+            $categorias = Categoria::all();
+            $proveedores = Proveedor::all();
+            return view('productos.crear', compact('categorias', 'proveedores'));
         });
 
         Route::post('/productos', function (Request $request) {
@@ -100,14 +107,15 @@ Route::middleware(['auth'])->group(function () {
                 'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo'],
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
-                'categoria' => ['nullable', 'string', 'max:100'],
+                'id_categoria' => ['required', 'exists:categorias,id_categoria'],
+                'id_proveedor' => ['nullable', 'exists:proveedores,id_proveedor'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
                 'stock_minimo' => ['required', 'integer', 'min:0'],
             ]);
 
-            $data['activo'] = true;
+            $data['estado'] = true;
 
             Producto::create($data);
 
@@ -115,15 +123,18 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/productos/{producto}/editar', function (Producto $producto) {
-            return view('productos.editar', compact('producto'));
+            $categorias = Categoria::all();
+            $proveedores = Proveedor::all();
+            return view('productos.editar', compact('producto', 'categorias', 'proveedores'));
         });
 
         Route::put('/productos/{producto}', function (Request $request, Producto $producto) {
             $data = $request->validate([
-                'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo,' . $producto->id],
+                'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo,' . $producto->id_producto . ',id_producto'],
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
-                'categoria' => ['nullable', 'string', 'max:100'],
+                'id_categoria' => ['required', 'exists:categorias,id_categoria'],
+                'id_proveedor' => ['nullable', 'exists:proveedores,id_proveedor'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
@@ -140,7 +151,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('rol:administrador')->group(function () {
 
         Route::patch('/productos/{producto}/estado', function (Producto $producto) {
-            $producto->update(['activo' => ! $producto->activo]);
+            $producto->update(['estado' => ! $producto->estado]);
 
             return back()->with('status', 'Estado del producto actualizado.');
         });
@@ -150,70 +161,128 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('rol:administrador,vendedor,caja')->group(function () {
 
         Route::get('/ventas', function () {
-            $ventas = [
-                [
-                    'id' => 1,
-                    'fecha_venta' => '2026-09-20 10:15',
-                    'usuario' => 'Axel Admin',
-                    'items' => [
-                        ['producto' => 'Teclado inalámbrico', 'cantidad' => 2, 'precio_unitario' => 350, 'subtotal' => 700],
-                        ['producto' => 'Mouse óptico', 'cantidad' => 1, 'precio_unitario' => 180, 'subtotal' => 180],
-                    ],
-                    'total' => 880,
-                ],
-                [
-                    'id' => 2,
-                    'fecha_venta' => '2026-09-21 16:40',
-                    'usuario' => 'Axel Admin',
-                    'items' => [
-                        ['producto' => 'Monitor 24"', 'cantidad' => 1, 'precio_unitario' => 2800, 'subtotal' => 2800],
-                    ],
-                    'total' => 2800,
-                ],
-                [
-                    'id' => 3,
-                    'fecha_venta' => '2026-09-22 09:05',
-                    'usuario' => 'Axel Admin',
-                    'items' => [
-                        ['producto' => 'Silla gamer', 'cantidad' => 1, 'precio_unitario' => 3200, 'subtotal' => 3200],
-                        ['producto' => 'Mouse óptico', 'cantidad' => 2, 'precio_unitario' => 180, 'subtotal' => 360],
-                    ],
-                    'total' => 3560,
-                ],
-            ];
+    $ventas = \App\Models\Venta::with([
+            'pedido.detalles.producto',
+            'usuario',
+        ])
+        ->orderByDesc('fecha')
+        ->get();
 
-            return view('ventas', compact('ventas'));
-        });
+    return view('ventas', compact('ventas'));
+});
     });
 
     // Registrar ventas: solo administrador y vendedor
     Route::middleware('rol:administrador,vendedor')->group(function () {
 
         Route::get('/ventas/crear', function () {
-            return view('ventas.crear');
+        return view('ventas.crear');
         });
 
         Route::get('/api/productos/buscar', function (Request $request) {
-            $termino = $request->query('q', '');
+    $termino = $request->query('q', '');
 
-            $productos = Producto::where('activo', true)
-                ->where(function ($query) use ($termino) {
-                    $query->where('nombre', 'like', "%{$termino}%")
-                        ->orWhere('codigo', 'like', "%{$termino}%");
-                })
-                ->limit(8)
-                ->get(['id', 'codigo', 'nombre', 'precio_venta', 'existencia']);
+    $productos = Producto::where('estado', true)
+        ->where(function ($query) use ($termino) {
+            $query->where('nombre', 'like', "%{$termino}%")
+                ->orWhere('codigo', 'like', "%{$termino}%");
+        })
+        ->limit(8)
+        ->get();
 
-            return response()->json($productos);
-        });
+  
+    $resultado = [];
+    foreach ($productos as $p) {
+        $resultado[] = [
+            'id_producto'  => (int) $p->id,
+            'codigo'       => (string) $p->codigo,
+            'nombre'       => (string) $p->nombre,
+            'precio_venta' => (float) $p->precio_venta,
+            'existencia'   => (int) $p->existencia,
+        ];
+    }
+
+    return response()->json($resultado);
+});
 
         Route::post('/ventas', function (Request $request) {
-            $data = $request->validate([
+            $request->validate([
+                'metodo_pago' => ['required', 'in:efectivo,tarjeta,transferencia'],
                 'items' => ['required', 'array', 'min:1'],
+                'items.*.id_producto' => ['required', 'exists:productos,id'],
+                'items.*.cantidad' => ['required', 'integer', 'min:1'],
             ]);
 
-            // TEMPORAL hasta que existan las tablas ventas / detalle_ventas
-            dd($data);
+            DB::beginTransaction();
+
+            try {
+                // 1. Calcular subtotal
+                $subtotal = 0;
+                foreach ($request->items as $item) {
+                    $producto = Producto::findOrFail($item['id_producto']);
+
+                    if ($producto->existencia < $item['cantidad']) {
+                        throw new \Exception("Stock insuficiente de '{$producto->nombre}'. Disponible: {$producto->existencia}");
+                    }
+
+                    $subtotal += $producto->precio_venta * $item['cantidad'];
+                }
+
+                $impuesto = $subtotal * 0.16;
+                $total = $subtotal + $impuesto;
+
+                // 2. Crear pedido (sin cliente)
+                $pedido = \App\Models\Pedido::create([
+                    'folio' => 'VEN-' . strtoupper(uniqid()),                 
+                    'estado' => 'completado',
+                    'subtotal' => $subtotal,
+                    'impuesto' => $impuesto,
+                    'total' => $total,
+                    'id_usuario' => Auth::id(),
+                ]);
+
+                // 3. Crear venta
+                \App\Models\Venta::create([
+                    'id_pedido' => $pedido->id,
+                    'fecha' => now(),
+                    'total' => $total,
+                    'metodo_pago' => $request->metodo_pago,
+                    'estado' => 'completado',
+                    'id_usuario' => Auth::id(),
+                ]);
+
+                // 4. Detalles + stock + movimiento
+                foreach ($request->items as $item) {
+                    $producto = Producto::findOrFail($item['id_producto']);
+
+                    \App\Models\DetallePedido::create([
+                        'id_pedido' => $pedido->id,
+                        'id_producto' => $producto->id,
+                        'cantidad' => $item['cantidad'],
+                        'precio_unitario' => $producto->precio_venta,
+                        'subtotal' => $producto->precio_venta * $item['cantidad'],
+                    ]);
+
+                    $producto->existencia -= $item['cantidad'];
+                    $producto->save();
+
+                    \App\Models\InventarioMovimiento::create([
+                        'id_producto' => $producto->id,
+                        'tipo' => 'salida',
+                        'cantidad' => $item['cantidad'],
+                        'motivo' => "Venta {$pedido->folio}",
+                        'id_usuario' => Auth::id(),
+                    ]);
+                }
+
+                DB::commit();
+
+                return redirect('/ventas')->with('status', "Venta {$pedido->folio} registrada correctamente.");
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return back()->withErrors(['venta' => $e->getMessage()]);
+            }
         });
     });
 
@@ -239,7 +308,7 @@ Route::middleware(['auth'])->group(function () {
                 'rol' => ['required', 'in:administrador,vendedor,caja,almacen'],
             ]);
 
-            $data['activo'] = true;
+            $data['estado'] = true;
 
             User::create($data);
 
@@ -247,36 +316,37 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/usuarios/{usuario}/editar', function (User $usuario) {
-    return view('usuarios.editar', compact('usuario'));
-});
+            return view('usuarios.editar', compact('usuario'));
+        });
 
-Route::put('/usuarios/{usuario}', function (Request $request, User $usuario) {
-    $data = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'apellidos' => ['required', 'string', 'max:255'],
-        'usuario' => ['required', 'string', 'max:50', 'unique:users,usuario,' . $usuario->id],
-        'email' => ['required', 'email', 'unique:users,email,' . $usuario->id],
-        'rol' => ['required', 'in:administrador,vendedor,caja,almacen'],
-        'password' => ['nullable', 'string', 'min:8'],
-    ]);
+        Route::put('/usuarios/{usuario}', function (Request $request, User $usuario) {
+            $data = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'apellidos' => ['required', 'string', 'max:255'],
+                'usuario' => ['required', 'string', 'max:50', 'unique:users,usuario,' . $usuario->id],
+                'email' => ['required', 'email', 'unique:users,email,' . $usuario->id],
+                'rol' => ['required', 'in:administrador,vendedor,caja,almacen'],
+                'password' => ['nullable', 'string', 'min:8'],
+            ]);
 
-    if (empty($data['password'])) {
-        unset($data['password']);
-    }
+            if (empty($data['password'])) {
+                unset($data['password']);
+            }
 
-    $usuario->update($data);
+            $usuario->update($data);
 
-    return redirect('/usuarios')->with('status', 'Usuario actualizado correctamente.');
-});
+            return redirect('/usuarios')->with('status', 'Usuario actualizado correctamente.');
+        });
 
         Route::patch('/usuarios/{usuario}/estado', function (User $usuario) {
             if ($usuario->id === Auth::id()) {
                 return back()->withErrors(['estado' => 'No puedes desactivar tu propia cuenta.']);
             }
 
-            $usuario->update(['activo' => ! $usuario->activo]);
+            $usuario->update(['estado' => ! $usuario->estado]);
 
             return back()->with('status', 'Estado del usuario actualizado.');
         });
     });
+
 });

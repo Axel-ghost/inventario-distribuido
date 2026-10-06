@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('detalle_pedido', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_pedido')->constrained();
-            $table->foreignId('id_producto')->constrained();
+            $table->foreignId('id_pedido')->constrained('pedidos');
+            $table->foreignId('id_producto')->constrained('productos');
             $table->integer('cantidad');
             $table->decimal('precio_unitario');
             $table->decimal('subtotal');

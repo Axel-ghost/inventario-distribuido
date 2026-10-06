@@ -38,22 +38,43 @@
 
                 <div class="input-group">
                     <label for="codigo">Código</label>
-                    <input type="text" id="codigo" name="codigo" value="{{ old('codigo') }}" required>
+                    <input type="text" id="codigo" name="codigo" value="{{ old('codigo') }}" maxlength="50" required>
                 </div>
 
                 <div class="input-group">
                     <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="categoria">Categoría</label>
-                    <input type="text" id="categoria" name="categoria" value="{{ old('categoria') }}">
+                    <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" maxlength="255" required>
                 </div>
 
                 <div class="input-group">
                     <label for="descripcion">Descripción</label>
-                    <input type="text" id="descripcion" name="descripcion" value="{{ old('descripcion') }}">
+                    <textarea id="descripcion" name="descripcion" rows="3">{{ old('descripcion') }}</textarea>
+                </div>
+
+                {{-- Categoría con select --}}
+                <div class="input-group">
+                    <label for="id_categoria">Categoría</label>
+                    <select id="id_categoria" name="id_categoria" required>
+                        <option value="">— Selecciona —</option>
+                        @foreach ($categorias as $cat)
+                            <option value="{{ $cat->id_categoria }}" @selected(old('id_categoria') == $cat->id_categoria)>
+                                {{ $cat->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Proveedor con select --}}
+                <div class="input-group">
+                    <label for="id_proveedor">Proveedor</label>
+                    <select id="id_proveedor" name="id_proveedor">
+                        <option value="">— Sin proveedor —</option>
+                        @foreach ($proveedores as $prov)
+                            <option value="{{ $prov->id_proveedor }}" @selected(old('id_proveedor') == $prov->id_proveedor)>
+                                {{ $prov->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div class="input-group">

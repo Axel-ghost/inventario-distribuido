@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>CoreBuild | Nueva venta</title>
     @vite(['resources/css/app.css'])
 </head>
@@ -25,53 +26,79 @@
                 <x-profile-card />
             </header>
 
-            <div class="venta-layout">
-
-                <!-- BUSCADOR -->
-                <div class="venta-buscador">
-
-                    <input
-                        type="text"
-                        id="buscarProducto"
-                        placeholder="Busca por nombre o código..."
-                        autocomplete="off"
-                    >
-
-                    <div id="sugerencias" class="venta-sugerencias"></div>
-
+            @if ($errors->any())
+                <div class="alert alert-danger" style="margin-bottom:16px;">
+                    <ul style="margin:0; padding-left:18px;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
+            @endif
 
-                <!-- CARRITO -->
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Precio</th>
-                            <th>Cantidad</th>
-                            <th>Subtotal</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="carritoBody">
-                        <tr id="carritoVacio">
-                            <td colspan="5" style="text-align: center; color: var(--muted);">
-                                Aún no has agregado productos
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <form method="POST" action="/ventas" id="formVenta">
+                @csrf
 
-                <!-- TOTAL Y BOTÓN -->
-                <div class="venta-resumen">
-                    <div class="venta-total">
-                        <span>Total</span>
-                        <strong id="ventaTotal">$0.00</strong>
+                <div class="venta-layout">
+
+                    <!-- BUSCADOR -->
+                    <div class="venta-buscador">
+                        <input
+                            type="text"
+                            id="buscarProducto"
+                            placeholder="Busca por nombre o código..."
+                            autocomplete="off"
+                        >
+                        <div id="sugerencias" class="venta-sugerencias"></div>
                     </div>
 
-                    <x-order-button id="btnConfirmarVenta" label="Confirmar venta" />
+                    <!-- MÉTODO DE PAGO -->
+                    <div style="margin-bottom: 20px;">
+                        <div class="input-group">
+                            <label for="metodo_pago">Método de pago</label>
+                            <select name="metodo_pago" id="metodo_pago" required>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="transferencia">Transferencia</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- CARRITO -->
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="carritoBody">
+                            <tr id="carritoVacio">
+                                <td colspan="5" style="text-align: center; color: var(--muted);">
+                                    Aún no has agregado productos
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- TOTAL Y BOTÓN -->
+                    <div class="venta-resumen">
+                        <div class="venta-total">
+                            <span>Total</span>
+                            <strong id="ventaTotal">$0.00</strong>
+                        </div>
+
+                        <button type="submit" class="btn-process" id="btnConfirmarVenta">
+                            <span class="btn-label">Confirmar venta</span>
+                        </button>
+                    </div>
+
                 </div>
 
-            </div>
+            </form>
 
         </main>
 
@@ -84,6 +111,7 @@
         const sugerenciasBox = document.getElementById('sugerencias');
         const carritoBody = document.getElementById('carritoBody');
         const ventaTotalEl = document.getElementById('ventaTotal');
+        const formVenta = document.getElementById('formVenta');
 
         let timeoutBusqueda = null;
 
@@ -113,7 +141,7 @@
             }
 
             sugerenciasBox.innerHTML = productos.map(p => `
-                <div class="venta-sugerencia" data-id="${p.id}">
+                <div class="venta-sugerencia" data-id="${p.id_producto}">
                     <div>
                         <strong>${p.nombre}</strong>
                         <span>${p.codigo} · Existencia: ${p.existencia}</span>
@@ -134,13 +162,13 @@
         }
 
         function agregarAlCarrito(producto) {
-            const existente = carrito.find(item => item.id === producto.id);
+            const existente = carrito.find(item => item.id_producto === producto.id_producto);
 
             if (existente) {
                 existente.cantidad += 1;
             } else {
                 carrito.push({
-                    id: producto.id,
+                    id_producto: producto.id_producto,
                     codigo: producto.codigo,
                     nombre: producto.nombre,
                     precio: Number(producto.precio_venta),
@@ -152,7 +180,7 @@
         }
 
         function quitarDelCarrito(id) {
-            const index = carrito.findIndex(item => item.id === id);
+            const index = carrito.findIndex(item => item.id_producto === id);
             if (index !== -1) {
                 carrito.splice(index, 1);
             }
@@ -160,7 +188,7 @@
         }
 
         function cambiarCantidad(id, nuevaCantidad) {
-            const item = carrito.find(item => item.id === id);
+            const item = carrito.find(item => item.id_producto === id);
             if (item) {
                 item.cantidad = Math.max(1, parseInt(nuevaCantidad) || 1);
             }
@@ -182,13 +210,16 @@
 
             let total = 0;
 
-            carritoBody.innerHTML = carrito.map(item => {
+            carritoBody.innerHTML = carrito.map((item, i) => {
                 const subtotal = item.precio * item.cantidad;
                 total += subtotal;
 
                 return `
                     <tr>
-                        <td>${item.nombre}</td>
+                        <td>
+                            ${item.nombre}
+                            <input type="hidden" name="items[${i}][id_producto]" value="${item.id_producto}">
+                        </td>
                         <td>$${item.precio.toFixed(2)}</td>
                         <td>
                             <input
@@ -196,12 +227,13 @@
                                 min="1"
                                 value="${item.cantidad}"
                                 class="venta-cantidad-input"
-                                onchange="cambiarCantidad(${item.id}, this.value)"
+                                name="items[${i}][cantidad]"
+                                onchange="cambiarCantidad(${item.id_producto}, this.value)"
                             >
                         </td>
                         <td>$${subtotal.toFixed(2)}</td>
                         <td>
-                            <button type="button" class="venta-quitar" onclick="quitarDelCarrito(${item.id})">✕</button>
+                            <button type="button" class="venta-quitar" onclick="quitarDelCarrito(${item.id_producto})">✕</button>
                         </td>
                     </tr>
                 `;
@@ -217,34 +249,12 @@
             }
         });
 
-        // Botón de confirmar venta
-        document.getElementById('btnConfirmarVenta').addEventListener('click', function () {
+        // Validar antes de enviar el formulario
+        formVenta.addEventListener('submit', function (e) {
             if (carrito.length === 0) {
+                e.preventDefault();
                 alert('Agrega al menos un producto antes de confirmar.');
-                return;
             }
-
-            const boton = this;
-
-            playOrderAnimation(boton, {
-                duration: 2200,
-                onComplete: function () {
-                    fetch('/ventas', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        },
-                        body: JSON.stringify({ items: carrito }),
-                    })
-                    .then(res => res.text())
-                    .then(html => {
-                        document.open();
-                        document.write(html);
-                        document.close();
-                    });
-                }
-            });
         });
     </script>
 

@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('inventario_movimiento', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_producto')->constrained();
+            $table->foreignId('id_producto')->constrained('productos');
             $table->string('tipo');
-            $table->interger('cantidad');
+            $table->integer('cantidad');
             $table->string('motivo');
-            $table->foreignId('id_usuario')->constrained();
+            $table->foreignId('id_usuario')->constrained('users');
             $table->timestamps();
         });
     }

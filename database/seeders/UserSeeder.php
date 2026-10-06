@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
             'email' => 'admin@corebuild.com',
             'password' => '12345678',
             'rol' => 'administrador',
-            'activo' => true,
+            'estado' => true,
         ]);
     }
 }

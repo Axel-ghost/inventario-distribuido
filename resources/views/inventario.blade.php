@@ -61,7 +61,7 @@
                         <tr>
                             <td>{{ $producto->codigo }}</td>
                             <td>{{ $producto->nombre }}</td>
-                            <td>{{ $producto->categoria }}</td>
+                            <td>{{ $producto->categoria->nombre ?? '—' }}</td>
                             <td>{{ $producto->existencia }}</td>
                             <td>{{ $producto->stock_minimo }}</td>
                             <td>

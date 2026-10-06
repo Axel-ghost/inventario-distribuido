@@ -25,9 +25,14 @@
                 <x-profile-card />
             </header>
 
+            @if (session('status'))
+                <p style="color: #22c55e; margin-bottom: 16px;">{{ session('status') }}</p>
+            @endif
+
             <a href="/ventas/crear" class="btn-process" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; max-width: 200px; margin-bottom: 20px;">
-            <span class="btn-label">+ Nueva venta</span>
+                <span class="btn-label">+ Nueva venta</span>
             </a>
+
             <table class="data-table">
                 <thead>
                     <tr>
@@ -38,18 +43,28 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($ventas as $venta)
+                    @forelse ($ventas as $venta)
                         <tr>
-                            <td>{{ $venta['fecha_venta'] }}</td>
-                            <td>{{ $venta['usuario'] }}</td>
+                            <td>{{ \Carbon\Carbon::parse($venta->fecha)->format('d/m/Y H:i') }}</td>
+                            <td>{{ $venta->usuario->name ?? '—' }}</td>
                             <td>
-                                @foreach ($venta['items'] as $item)
-                                    {{ $item['producto'] }} (x{{ $item['cantidad'] }})@if (!$loop->last), @endif
-                                @endforeach
+                                @if ($venta->pedido && $venta->pedido->detalles)
+                                    @foreach ($venta->pedido->detalles as $detalle)
+                                        {{ $detalle->producto->nombre ?? '—' }} (x{{ $detalle->cantidad }})@if (!$loop->last), @endif
+                                    @endforeach
+                                @else
+                                    <span style="color: #888;">Sin detalles</span>
+                                @endif
                             </td>
-                            <td>${{ number_format($venta['total'], 2) }}</td>
+                            <td>${{ number_format($venta->total, 2) }}</td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 20px; color: #888;">
+                                No hay ventas registradas.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
 

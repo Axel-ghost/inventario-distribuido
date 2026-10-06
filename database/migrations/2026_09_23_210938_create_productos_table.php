@@ -13,8 +13,8 @@ return new class extends Migration
             $table->string('codigo')->unique();
             $table->string('nombre');
             $table->text('descripcion')->nullable();
-            $table->foreignId('id_categoria')->constrained();
-            $table->foreignId('id_proveedor')->constrained();
+            $table->foreignId('id_categoria')->constrained('categorias');
+            $table->foreignId('id_proveedor')->nullable()->constrained('proveedores');
             $table->decimal('precio_compra', 10, 2);
             $table->decimal('precio_venta', 10, 2);
             $table->integer('existencia')->default(0);

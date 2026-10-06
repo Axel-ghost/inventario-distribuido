@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('pedidos', function (Blueprint $table) {
             $table->id();
             $table->string('folio', 30);
-            $table->foreignId('id_cliente')->constrained();
+            $table->foreignId('id_cliente')->nullable()->constrained('clientes');
             $table->string('estado')->default('pendiente');
             $table->decimal('subtotal');
             $table->decimal('impuesto');
             $table->decimal('total',);
-            $table->foreignId('id_usuario')->constrained();
+            $table->foreignId('id_usuario')->constrained('users');
             $table->timestamps();
         });
     }

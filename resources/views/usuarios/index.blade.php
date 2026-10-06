@@ -33,7 +33,8 @@
                 <p style="color: #ef4444; margin-bottom: 16px;">{{ $errors->first() }}</p>
             @endif
 
-            <a href="/usuarios/crear" class="btn-process" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; max-width: 200px; margin-bottom: 20px;">
+            <a href="/usuarios/crear" class="btn-process"
+               style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; max-width: 200px; margin-bottom: 20px;">
                 <span class="btn-label">+ Nuevo usuario</span>
             </a>
 
@@ -56,28 +57,30 @@
                             <td>{{ $u->email }}</td>
                             <td>{{ ucfirst($u->rol) }}</td>
                             <td>
-                                @if ($u->activo)
+                                @if ($u->estado)
                                     <span class="badge badge-ok">Activo</span>
                                 @else
                                     <span class="badge badge-danger">Inactivo</span>
                                 @endif
                             </td>
                             <td>
-                                <a href="/usuarios/{{ $u->id }}/editar" class="venta-quitar" style="color: var(--accent); text-decoration: none; margin-right: 12px;">\
-                                    Editar
-                                </a>
+    {{-- Editar (azul) --}}
+    <a href="/usuarios/{{ $u->id }}/editar" class="accion-link">
+        Editar
+    </a>
 
-                            @if ($u->id !== Auth::id())
-                            <form method="POST" action="/usuarios/{{ $u->id }}/estado" style="display: inline;">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="venta-quitar" style="color: var(--accent);">
-                                {{ $u->activo ? 'Desactivar' : 'Activar' }}
-                            </button>
-                        </form>
-                    @endif
-                    </td>
-                    </tr>
+    {{-- Activar (verde) / Desactivar (rojo) --}}
+    @if ($u->id !== Auth::id())
+        <form method="POST" action="/usuarios/{{ $u->id }}/estado" style="display: inline;">
+            @csrf
+            @method('PATCH')
+            <button type="submit" class="accion-link {{ $u->estado ? 'accion-danger' : 'accion-ok' }}">
+                {{ $u->estado ? 'Desactivar' : 'Activar' }}
+            </button>
+        </form>
+    @endif
+</td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
