@@ -52,8 +52,49 @@ Route::middleware(['auth'])->group(function () {
 
     // Todos los roles
     Route::get('/dashboard', function () {
-        return view('dashboard');
-    });
+    // KPIs
+    $totalProductos = \App\Models\Producto::where('estado', true)->count();
+
+    $stockBajo = \App\Models\Producto::where('estado', true)
+        ->whereColumn('existencia', '<=', 'stock_minimo')
+        ->where('existencia', '>', 0)
+        ->count();
+    
+    $productosAgotados = \App\Models\Producto::where('estado', true)
+        ->where('existencia', 0)
+        ->count();
+
+    $ventasDelMes = \App\Models\Venta::whereMonth('fecha', now()->month)
+        ->whereYear('fecha', now()->year)
+        ->sum('total');
+
+    $pedidosPendientes = \App\Models\Pedido::where('estado', '!=', 'completado')->count();
+
+    
+    $productosStockBajo = \App\Models\Producto::with('categoria')
+        ->where('estado', true)
+        ->whereColumn('existencia', '<=', 'stock_minimo')
+        ->where('existencia', '>', 0)
+        ->orderBy('existencia', 'asc')
+        ->take(3)
+        ->get();
+
+    // Operaciones recientes (últimos movimientos de inventario)
+    $operacionesRecientes = \App\Models\InventarioMovimiento::with('producto')
+        ->orderByDesc('created_at')
+        ->take(3)
+        ->get();
+
+    return view('dashboard', compact(
+        'totalProductos',
+        'stockBajo',
+        'productosAgotados',
+        'ventasDelMes',
+        'pedidosPendientes',
+        'productosStockBajo',
+        'operacionesRecientes',
+    ));
+});
 
     Route::post('/perfil/foto', function (Request $request) {
         $request->validate([

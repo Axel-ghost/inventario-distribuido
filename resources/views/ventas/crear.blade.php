@@ -84,6 +84,11 @@
                         </tbody>
                     </table>
 
+                    <!-- MENSAJE GLOBAL DE STOCK INSUFICIENTE -->
+                    <div id="alertaStock" style="display:none; margin-top:16px; padding:12px 16px; border-radius:8px; background:rgba(239,68,68,0.15); color:#ef4444; font-weight:600;">
+                        ⚠ Stock insuficiente: uno o más productos superan la existencia disponible. Ajusta las cantidades para continuar.
+                    </div>
+
                     <!-- TOTAL Y BOTÓN -->
                     <div class="venta-resumen">
                         <div class="venta-total">
@@ -112,8 +117,11 @@
         const carritoBody = document.getElementById('carritoBody');
         const ventaTotalEl = document.getElementById('ventaTotal');
         const formVenta = document.getElementById('formVenta');
+        const btnConfirmar = document.getElementById('btnConfirmarVenta');
+        const alertaStock = document.getElementById('alertaStock');
 
         let timeoutBusqueda = null;
+        let stockInvalido = false;
 
         inputBuscar.addEventListener('input', function () {
             const termino = this.value.trim();
@@ -172,6 +180,7 @@
                     codigo: producto.codigo,
                     nombre: producto.nombre,
                     precio: Number(producto.precio_venta),
+                    existencia: Number(producto.existencia),
                     cantidad: 1,
                 });
             }
@@ -205,19 +214,34 @@
                     </tr>
                 `;
                 ventaTotalEl.textContent = '$0.00';
+                alertaStock.style.display = 'none';
+                btnConfirmar.disabled = false;
+                btnConfirmar.style.opacity = '1';
+                btnConfirmar.style.cursor = 'pointer';
+                stockInvalido = false;
                 return;
             }
 
             let total = 0;
+            stockInvalido = false;
 
             carritoBody.innerHTML = carrito.map((item, i) => {
                 const subtotal = item.precio * item.cantidad;
                 total += subtotal;
 
+                const excede = item.cantidad > item.existencia;
+                if (excede) stockInvalido = true;
+
+                const stockTexto = excede
+                    ? `<span style="color:#ef4444; font-weight:600;">⚠ Excede el stock · Disponible: ${item.existencia}</span>`
+                    : `<span style="color:#22c55e; font-weight:600;">✓ Disponible: ${item.existencia}</span>`;
+
                 return `
                     <tr>
                         <td>
                             ${item.nombre}
+                            <br>
+                            <small>${stockTexto}</small>
                             <input type="hidden" name="items[${i}][id_producto]" value="${item.id_producto}">
                         </td>
                         <td>$${item.precio.toFixed(2)}</td>
@@ -229,6 +253,7 @@
                                 class="venta-cantidad-input"
                                 name="items[${i}][cantidad]"
                                 onchange="cambiarCantidad(${item.id_producto}, this.value)"
+                                style="${excede ? 'border:1px solid #ef4444;' : ''}"
                             >
                         </td>
                         <td>$${subtotal.toFixed(2)}</td>
@@ -240,20 +265,41 @@
             }).join('');
 
             ventaTotalEl.textContent = '$' + total.toFixed(2);
+
+            // Si hay exceso: mostrar aviso y DESHABILITAR el botón
+            if (stockInvalido) {
+                alertaStock.style.display = 'block';
+                btnConfirmar.disabled = true;
+                btnConfirmar.style.opacity = '0.5';
+                btnConfirmar.style.cursor = 'not-allowed';
+            } else {
+                alertaStock.style.display = 'none';
+                btnConfirmar.disabled = false;
+                btnConfirmar.style.opacity = '1';
+                btnConfirmar.style.cursor = 'pointer';
+            }
         }
 
-        // Cerrar sugerencias si haces clic fuera
         document.addEventListener('click', function (event) {
             if (!event.target.closest('.venta-buscador')) {
                 sugerenciasBox.classList.remove('open');
             }
         });
 
-        // Validar antes de enviar el formulario
+        // Confirmación antes de enviar (solo cuando el botón está activo)
         formVenta.addEventListener('submit', function (e) {
             if (carrito.length === 0) {
                 e.preventDefault();
                 alert('Agrega al menos un producto antes de confirmar.');
+                return;
+            }
+
+            // Si llegó aquí, es porque NO hay exceso (el botón estaba habilitado)
+            const continuar = confirm('¿Deseas continuar con la compra?');
+
+            if (!continuar) {
+                e.preventDefault();
+                return;
             }
         });
     </script>
