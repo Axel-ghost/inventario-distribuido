@@ -71,6 +71,10 @@
         INICIAR SESION
     </button>
 
+    <p style="margin-top: 16px; text-align: center; color: var(--muted); font-size: 13px;">
+    ¿Eres cliente nuevo? <a href="/tienda/registro" style="color: var(--accent);">Crea tu cuenta aquí</a>
+    </p>
+
     </form>
 
         <p class="system-status">

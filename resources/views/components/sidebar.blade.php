@@ -31,6 +31,21 @@
             </a>
         @endif
 
+        @if (in_array($rol, ['administrador', 'almacen']))
+            <a href="/pedidos" class="nav-item {{ $activePage === 'pedidos' ? 'active' : '' }}">
+                <span>📋</span>
+                Pedidos
+                @if ($rol === 'administrador')
+                    @php
+                        $pendientes = \App\Models\Pedido::whereIn('estado', ['solicitado', 'en_revision'])->count();
+                    @endphp
+                    @if ($pendientes > 0)
+                        <span class="sidebar-badge">{{ $pendientes }}</span>
+                    @endif
+                @endif
+            </a>
+        @endif
+
         @if (in_array($rol, ['administrador', 'vendedor', 'caja']))
             <p class="nav-title">OPERACIONES</p>
 

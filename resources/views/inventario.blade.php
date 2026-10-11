@@ -23,8 +23,11 @@
                 </div>
 
                 <x-profile-card />
-                
             </header>
+
+            @if (session('status'))
+                <p style="color: #22c55e; margin-bottom: 16px;">{{ session('status') }}</p>
+            @endif
 
             <div class="dashboard-grid" style="margin-bottom: 24px;">
 
@@ -67,8 +70,14 @@
                             <td>
                                 @if ($producto->existencia == 0)
                                     <span class="badge badge-danger">Agotado</span>
+                                    @if (Auth::user()->rol === 'almacen')
+                                        <a href="/pedidos/crear?producto_id={{ $producto->id }}" style="color: var(--accent); font-size: 12px; display: block; margin-top: 4px;">Solicitar reabasto</a>
+                                    @endif
                                 @elseif ($producto->existencia <= $producto->stock_minimo)
                                     <span class="badge badge-warning">Bajo</span>
+                                    @if (Auth::user()->rol === 'almacen')
+                                        <a href="/pedidos/crear?producto_id={{ $producto->id }}" style="color: var(--accent); font-size: 12px; display: block; margin-top: 4px;">Solicitar reabasto</a>
+                                    @endif
                                 @else
                                     <span class="badge badge-ok">Óptimo</span>
                                 @endif

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\DetallePedido;
+use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -9,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     if (Auth::check()) {
-        return redirect('/dashboard');
+        return redirect(Auth::user()->rol === 'cliente' ? '/tienda' : '/dashboard');
     }
 
     return view('login');
@@ -29,7 +31,9 @@ Route::post('/login', function (Request $request) {
             return back()->withErrors(['usuario' => 'Tu cuenta está desactivada.']);
         }
 
-        return redirect('/dashboard');
+        $destinoDefault = Auth::user()->rol === 'cliente' ? '/tienda' : '/dashboard';
+
+        return redirect()->intended($destinoDefault);
     }
 
     return back()->withErrors(['usuario' => 'Usuario o contraseña incorrectos.']);
@@ -43,12 +47,123 @@ Route::post('/logout', function (Request $request) {
     return redirect('/');
 })->name('logout');
 
+/* ---------- TIENDA PÚBLICA (sin necesidad de cuenta) ---------- */
+
+Route::get('/tienda', function () {
+    $termino = request('q');
+
+    $query = Producto::where('activo', true)->where('existencia', '>', 0);
+
+    if ($termino) {
+        $query->where(function ($q) use ($termino) {
+            $q->where('nombre', 'like', "%{$termino}%")
+              ->orWhere('categoria', 'like', "%{$termino}%");
+        });
+    }
+
+    $productos = $query->orderBy('nombre')->get();
+
+    $categorias = Producto::where('activo', true)
+        ->whereNotNull('categoria')
+        ->distinct()
+        ->pluck('categoria');
+
+    return view('tienda.index', compact('productos', 'categorias'));
+})->name('tienda.index');
+
+Route::get('/tienda/carrito', function () {
+    $carrito = session('carrito', []);
+    $total = collect($carrito)->sum(fn ($item) => $item['precio'] * $item['cantidad']);
+
+    return view('tienda.carrito', compact('carrito', 'total'));
+})->name('tienda.carrito');
+
+Route::post('/tienda/carrito/agregar', function (Request $request) {
+    $producto = Producto::where('activo', true)->findOrFail($request->input('producto_id'));
+
+    $carrito = session('carrito', []);
+    $cantidadActual = $carrito[$producto->id]['cantidad'] ?? 0;
+
+    $carrito[$producto->id] = [
+        'producto_id' => $producto->id,
+        'codigo' => $producto->codigo,
+        'nombre' => $producto->nombre,
+        'precio' => (float) $producto->precio_venta,
+        'imagen_url' => $producto->imagen_url,
+        'cantidad' => min($cantidadActual + 1, $producto->existencia),
+    ];
+
+    session(['carrito' => $carrito]);
+
+    return back()->with('status', $producto->nombre . ' se agregó al carrito.');
+})->name('tienda.carrito.agregar');
+
+Route::post('/tienda/carrito/actualizar', function (Request $request) {
+    $carrito = session('carrito', []);
+    $id = $request->input('producto_id');
+
+    if (isset($carrito[$id])) {
+        $producto = Producto::find($id);
+        $cantidad = max(1, (int) $request->input('cantidad', 1));
+
+        $carrito[$id]['cantidad'] = $producto ? min($cantidad, $producto->existencia) : $cantidad;
+        session(['carrito' => $carrito]);
+    }
+
+    return back();
+})->name('tienda.carrito.actualizar');
+
+Route::post('/tienda/carrito/quitar', function (Request $request) {
+    $carrito = session('carrito', []);
+    unset($carrito[$request->input('producto_id')]);
+    session(['carrito' => $carrito]);
+
+    return back()->with('status', 'Producto quitado del carrito.');
+})->name('tienda.carrito.quitar');
+
+Route::get('/tienda/registro', function () {
+    if (Auth::check()) {
+        return redirect('/tienda/checkout');
+    }
+
+    return view('tienda.registro');
+})->name('tienda.registro');
+
+Route::post('/tienda/registro', function (Request $request) {
+    $data = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'apellidos' => ['required', 'string', 'max:255'],
+        'usuario' => ['required', 'string', 'max:50', 'unique:users,usuario'],
+        'email' => ['required', 'email', 'unique:users,email'],
+        'password' => ['required', 'string', 'min:8', 'confirmed'],
+    ]);
+
+    $nuevoCliente = User::create([
+        'name' => $data['name'],
+        'apellidos' => $data['apellidos'],
+        'usuario' => $data['usuario'],
+        'email' => $data['email'],
+        'password' => $data['password'],
+        'rol' => 'cliente',
+        'activo' => true,
+    ]);
+
+    Auth::login($nuevoCliente);
+    $request->session()->regenerate();
+
+    return redirect()->intended('/tienda/checkout');
+})->name('tienda.registro.guardar');
+
 /* ---------- RUTAS PROTEGIDAS (requieren sesión) ---------- */
 
 Route::middleware(['auth'])->group(function () {
 
-    // Todos los roles
+    // Todos los roles internos
     Route::get('/dashboard', function () {
+        if (Auth::user()->rol === 'cliente') {
+            return redirect('/tienda');
+        }
+
         return view('dashboard');
     });
 
@@ -70,6 +185,51 @@ Route::middleware(['auth'])->group(function () {
         return back()->with('status', 'Foto actualizada correctamente.');
     });
 
+    // Checkout: cualquier usuario logueado (pensado para clientes)
+    Route::get('/tienda/checkout', function () {
+        $carrito = session('carrito', []);
+
+        if (empty($carrito)) {
+            return redirect('/tienda')->with('status', 'Tu carrito está vacío.');
+        }
+
+        $total = collect($carrito)->sum(fn ($item) => $item['precio'] * $item['cantidad']);
+
+        return view('tienda.checkout', compact('carrito', 'total'));
+    })->name('tienda.checkout');
+
+    Route::post('/tienda/checkout', function (Request $request) {
+        $carrito = session('carrito', []);
+
+        if (empty($carrito)) {
+            return redirect('/tienda');
+        }
+
+        $total = collect($carrito)->sum(fn ($item) => $item['precio'] * $item['cantidad']);
+
+        session(['ultimo_pedido_cliente' => [
+            'folio' => 'PED-' . now()->format('YmdHis'),
+            'fecha' => now()->format('d/m/Y H:i'),
+            'cliente' => Auth::user()->name . ' ' . Auth::user()->apellidos,
+            'items' => array_values($carrito),
+            'total' => $total,
+        ]]);
+
+        session()->forget('carrito');
+
+        return redirect('/tienda/confirmacion');
+    });
+
+    Route::get('/tienda/confirmacion', function () {
+        $pedido = session('ultimo_pedido_cliente');
+
+        if (! $pedido) {
+            return redirect('/tienda');
+        }
+
+        return view('tienda.confirmacion', compact('pedido'));
+    })->name('tienda.confirmacion');
+
     // Productos e Inventario: administrador, vendedor y almacén
     Route::middleware('rol:administrador,vendedor,almacen')->group(function () {
 
@@ -88,7 +248,7 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-        // Alta y edición de productos: administrador y almacén
+    // Alta y edición de productos: administrador y almacén
     Route::middleware('rol:administrador,almacen')->group(function () {
 
         Route::get('/productos/crear', function () {
@@ -101,6 +261,7 @@ Route::middleware(['auth'])->group(function () {
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
                 'categoria' => ['nullable', 'string', 'max:100'],
+                'imagen_url' => ['nullable', 'url', 'max:500'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
@@ -124,6 +285,7 @@ Route::middleware(['auth'])->group(function () {
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
                 'categoria' => ['nullable', 'string', 'max:100'],
+                'imagen_url' => ['nullable', 'url', 'max:500'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
@@ -143,6 +305,126 @@ Route::middleware(['auth'])->group(function () {
             $producto->update(['activo' => ! $producto->activo]);
 
             return back()->with('status', 'Estado del producto actualizado.');
+        });
+    });
+
+    // Pedidos (requisiciones de reabasto): administrador y almacén
+    Route::middleware('rol:administrador,almacen')->group(function () {
+
+        Route::get('/pedidos', function () {
+            $query = Pedido::with('solicitante', 'detalles.producto')->orderByDesc('created_at');
+
+            if (Auth::user()->rol === 'almacen') {
+                $query->where('solicitante_id', Auth::id());
+            }
+
+            $pedidos = $query->get();
+
+            return view('pedidos.index', compact('pedidos'));
+        });
+
+        Route::get('/pedidos/crear', function (Request $request) {
+            $sugerido = null;
+
+            if ($request->filled('producto_id')) {
+                $producto = Producto::find($request->query('producto_id'));
+
+                if ($producto) {
+                    $sugerido = [
+                        'id' => $producto->id,
+                        'codigo' => $producto->codigo,
+                        'nombre' => $producto->nombre,
+                        'cantidad' => max($producto->stock_minimo * 2 - $producto->existencia, 1),
+                    ];
+                }
+            }
+
+            return view('pedidos.crear', compact('sugerido'));
+        });
+
+        Route::post('/pedidos', function (Request $request) {
+            $data = $request->validate([
+                'items' => ['required', 'array', 'min:1'],
+                'items.*.producto_id' => ['required', 'exists:productos,id'],
+                'items.*.cantidad' => ['required', 'integer', 'min:1'],
+            ]);
+
+            $pedido = Pedido::create([
+                'folio' => 'REQ-' . now()->format('YmdHis'),
+                'solicitante_id' => Auth::id(),
+                'estado' => 'solicitado',
+                'fecha_solicitud' => now(),
+            ]);
+
+            foreach ($data['items'] as $item) {
+                DetallePedido::create([
+                    'pedido_id' => $pedido->id,
+                    'producto_id' => $item['producto_id'],
+                    'cantidad_solicitada' => $item['cantidad'],
+                ]);
+            }
+
+            return redirect('/pedidos/' . $pedido->id)->with('status', 'Requisición enviada correctamente.');
+        });
+
+        Route::get('/pedidos/{pedido}', function (Pedido $pedido) {
+            if (Auth::user()->rol === 'almacen' && $pedido->solicitante_id !== Auth::id()) {
+                abort(403);
+            }
+
+            $pedido->load('solicitante', 'revisor', 'detalles.producto');
+
+            return view('pedidos.show', compact('pedido'));
+        });
+
+        Route::patch('/pedidos/{pedido}/finalizar', function (Pedido $pedido) {
+            if ($pedido->estado !== 'aprobado') {
+                return back()->withErrors(['pedido' => 'Solo se puede finalizar un pedido ya aprobado.']);
+            }
+
+            foreach ($pedido->detalles as $detalle) {
+                $detalle->producto->increment('existencia', $detalle->cantidad_solicitada);
+            }
+
+            $pedido->update(['estado' => 'finalizado']);
+
+            return back()->with('status', 'Pedido marcado como finalizado. Inventario actualizado.');
+        });
+    });
+
+    // Revisar, aprobar y rechazar pedidos: solo administrador
+    Route::middleware('rol:administrador')->group(function () {
+
+        Route::patch('/pedidos/{pedido}/revisar', function (Pedido $pedido) {
+            $pedido->update([
+                'estado' => 'en_revision',
+                'revisor_id' => Auth::id(),
+            ]);
+
+            return back()->with('status', 'Pedido puesto en revisión.');
+        });
+
+        Route::patch('/pedidos/{pedido}/aprobar', function (Pedido $pedido) {
+            $pedido->update([
+                'estado' => 'aprobado',
+                'revisor_id' => Auth::id(),
+                'fecha_resolucion' => now(),
+            ]);
+
+            return back()->with('status', 'Pedido aprobado.');
+        });
+
+        Route::patch('/pedidos/{pedido}/rechazar', function (Request $request, Pedido $pedido) {
+            $request->validate(['comentario_admin' => ['required', 'string', 'max:500']]);
+
+            $pedido->update([
+                'estado' => 'rechazado',
+                'revisor_id' => Auth::id(),
+                'comentario_admin' => $request->comentario_admin,
+                'fecha_resolucion' => now(),
+            ]);
+
+            return back()->with('status', 'Pedido rechazado.');
         });
     });
 
@@ -236,7 +518,7 @@ Route::middleware(['auth'])->group(function () {
                 'usuario' => ['required', 'string', 'max:50', 'unique:users,usuario'],
                 'email' => ['required', 'email', 'unique:users,email'],
                 'password' => ['required', 'string', 'min:8'],
-                'rol' => ['required', 'in:administrador,vendedor,caja,almacen'],
+                'rol' => ['required', 'in:administrador,vendedor,caja,almacen,cliente'],
             ]);
 
             $data['activo'] = true;
@@ -247,27 +529,27 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/usuarios/{usuario}/editar', function (User $usuario) {
-    return view('usuarios.editar', compact('usuario'));
-});
+            return view('usuarios.editar', compact('usuario'));
+        });
 
-Route::put('/usuarios/{usuario}', function (Request $request, User $usuario) {
-    $data = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'apellidos' => ['required', 'string', 'max:255'],
-        'usuario' => ['required', 'string', 'max:50', 'unique:users,usuario,' . $usuario->id],
-        'email' => ['required', 'email', 'unique:users,email,' . $usuario->id],
-        'rol' => ['required', 'in:administrador,vendedor,caja,almacen'],
-        'password' => ['nullable', 'string', 'min:8'],
-    ]);
+        Route::put('/usuarios/{usuario}', function (Request $request, User $usuario) {
+            $data = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'apellidos' => ['required', 'string', 'max:255'],
+                'usuario' => ['required', 'string', 'max:50', 'unique:users,usuario,' . $usuario->id],
+                'email' => ['required', 'email', 'unique:users,email,' . $usuario->id],
+                'rol' => ['required', 'in:administrador,vendedor,caja,almacen,cliente'],
+                'password' => ['nullable', 'string', 'min:8'],
+            ]);
 
-    if (empty($data['password'])) {
-        unset($data['password']);
-    }
+            if (empty($data['password'])) {
+                unset($data['password']);
+            }
 
-    $usuario->update($data);
+            $usuario->update($data);
 
-    return redirect('/usuarios')->with('status', 'Usuario actualizado correctamente.');
-});
+            return redirect('/usuarios')->with('status', 'Usuario actualizado correctamente.');
+        });
 
         Route::patch('/usuarios/{usuario}/estado', function (User $usuario) {
             if ($usuario->id === Auth::id()) {
