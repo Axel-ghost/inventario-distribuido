@@ -475,6 +475,19 @@ Route::middleware(['auth'])->group(function () {
             return view('ventas.crear');
         });
 
+        Route::post('/ventas', function (Request $request) {
+            $data = $request->validate([
+                'items' => ['required', 'array', 'min:1'],
+            ]);
+
+            // TEMPORAL hasta que existan las tablas ventas / detalle_ventas
+            dd($data);
+        });
+    });
+
+    // Búsqueda de productos: administrador, vendedor y almacén (ventas Y pedidos la usan)
+    Route::middleware('rol:administrador,vendedor,almacen')->group(function () {
+
         Route::get('/api/productos/buscar', function (Request $request) {
             $termino = $request->query('q', '');
 
@@ -487,15 +500,6 @@ Route::middleware(['auth'])->group(function () {
                 ->get(['id', 'codigo', 'nombre', 'precio_venta', 'existencia']);
 
             return response()->json($productos);
-        });
-
-        Route::post('/ventas', function (Request $request) {
-            $data = $request->validate([
-                'items' => ['required', 'array', 'min:1'],
-            ]);
-
-            // TEMPORAL hasta que existan las tablas ventas / detalle_ventas
-            dd($data);
         });
     });
 
