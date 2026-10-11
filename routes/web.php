@@ -148,8 +148,8 @@ Route::middleware(['auth'])->group(function () {
                 'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo'],
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
-                'id_categoria' => ['required', 'exists:categorias,id_categoria'],
-                'id_proveedor' => ['nullable', 'exists:proveedores,id_proveedor'],
+                'id_categoria' => ['required', 'exists:categorias,id'],
+                'id_proveedor' => ['nullable', 'exists:proveedores,id'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
@@ -171,11 +171,11 @@ Route::middleware(['auth'])->group(function () {
 
         Route::put('/productos/{producto}', function (Request $request, Producto $producto) {
             $data = $request->validate([
-                'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo,' . $producto->id_producto . ',id_producto'],
+                'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo,' . $producto->id . ',id'],
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
-                'id_categoria' => ['required', 'exists:categorias,id_categoria'],
-                'id_proveedor' => ['nullable', 'exists:proveedores,id_proveedor'],
+                'id_categoria' => ['required', 'exists:categorias,id'],
+                'id_proveedor' => ['nullable', 'exists:proveedores,id'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],

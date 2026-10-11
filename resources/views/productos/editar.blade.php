@@ -33,7 +33,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="/productos/{{ $producto->id_producto }}" class="form-card">
+            <form method="POST" action="/productos/{{ $producto->id }}" class="form-card">
                 @csrf
                 @method('PUT')
 
@@ -55,14 +55,14 @@
                 {{-- Categoría con select --}}
                 <div class="input-group">
                     <label for="id_categoria">Categoría</label>
-                    <select id="id_categoria" name="id_categoria" required>
-                        <option value="">— Selecciona —</option>
-                        @foreach ($categorias as $cat)
-                            <option value="{{ $cat->id_categoria }}" @selected(old('id_categoria', $producto->id_categoria) == $cat->id_categoria)>
-                                {{ $cat->nombre }}
-                            </option>
-                        @endforeach
-                    </select>
+<select id="id_categoria" name="id_categoria" required>
+    <option value="">— Selecciona —</option>
+    @foreach ($categorias as $cat)
+        <option value="{{ $cat->id }}" {{ old('id_categoria', $producto->id_categoria) == $cat->id ? 'selected' : '' }}>
+            {{ $cat->nombre }}
+        </option>
+    @endforeach
+</select>
                 </div>
 
                 {{-- Proveedor con select --}}
