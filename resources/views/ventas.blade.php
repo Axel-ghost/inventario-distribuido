@@ -48,8 +48,8 @@
                             <td>{{ \Carbon\Carbon::parse($venta->fecha)->format('d/m/Y H:i') }}</td>
                             <td>{{ $venta->usuario->name ?? '—' }}</td>
                             <td>
-                                @if ($venta->pedido && $venta->pedido->detalles)
-                                    @foreach ($venta->pedido->detalles as $detalle)
+                                @if ($venta->detalles && $venta->detalles->count() > 0)
+                                    @foreach ($venta->detalles as $detalle)
                                         {{ $detalle->producto->nombre ?? '—' }} (x{{ $detalle->cantidad }})@if (!$loop->last), @endif
                                     @endforeach
                                 @else

@@ -203,7 +203,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/ventas', function () {
     $ventas = \App\Models\Venta::with([
-            'pedido.detalles.producto',
+            'detalles.producto',
             'usuario',
         ])
         ->orderByDesc('fecha')
@@ -246,85 +246,74 @@ Route::middleware(['auth'])->group(function () {
     return response()->json($resultado);
 });
 
-        Route::post('/ventas', function (Request $request) {
-            $request->validate([
-                'metodo_pago' => ['required', 'in:efectivo,tarjeta,transferencia'],
-                'items' => ['required', 'array', 'min:1'],
-                'items.*.id_producto' => ['required', 'exists:productos,id'],
-                'items.*.cantidad' => ['required', 'integer', 'min:1'],
+Route::post('/ventas', function (Request $request) {
+    $request->validate([
+        'metodo_pago' => ['required', 'in:efectivo,tarjeta,transferencia'],
+        'items' => ['required', 'array', 'min:1'],
+        'items.*.id_producto' => ['required', 'exists:productos,id'],
+        'items.*.cantidad' => ['required', 'integer', 'min:1'],
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        // 1. Calcular subtotal
+        $subtotal = 0;
+        foreach ($request->items as $item) {
+            $producto = Producto::findOrFail($item['id_producto']);
+
+            if ($producto->existencia < $item['cantidad']) {
+                throw new \Exception("Stock insuficiente de '{$producto->nombre}'. Disponible: {$producto->existencia}");
+            }
+
+            $subtotal += $producto->precio_venta * $item['cantidad'];
+        }
+
+        $impuesto = $subtotal * 0.16;
+        $total = $subtotal + $impuesto;
+
+        // 2. Crear la venta (sin pedido)
+        $venta = \App\Models\Venta::create([
+            'fecha' => now(),
+            'total' => $total,
+            'metodo_pago' => $request->metodo_pago,
+            'estado' => 'completado',
+            'id_usuario' => Auth::id(),
+        ]);
+
+        // 3. Crear detalles + descontar stock + movimiento de inventario
+        foreach ($request->items as $item) {
+            $producto = Producto::findOrFail($item['id_producto']);
+
+            \App\Models\VentaDetalle::create([
+                'id_venta' => $venta->id,
+                'id_producto' => $producto->id,
+                'cantidad' => $item['cantidad'],
+                'precio_unitario' => $producto->precio_venta,
+                'subtotal' => $producto->precio_venta * $item['cantidad'],
             ]);
 
-            DB::beginTransaction();
+            $producto->existencia -= $item['cantidad'];
+            $producto->save();
 
-            try {
-                // 1. Calcular subtotal
-                $subtotal = 0;
-                foreach ($request->items as $item) {
-                    $producto = Producto::findOrFail($item['id_producto']);
+            \App\Models\InventarioMovimiento::create([
+                'id_producto' => $producto->id,
+                'tipo' => 'salida',
+                'cantidad' => $item['cantidad'],
+                'motivo' => "Venta #{$venta->id}",
+                'id_usuario' => Auth::id(),
+            ]);
+        }
 
-                    if ($producto->existencia < $item['cantidad']) {
-                        throw new \Exception("Stock insuficiente de '{$producto->nombre}'. Disponible: {$producto->existencia}");
-                    }
+        DB::commit();
 
-                    $subtotal += $producto->precio_venta * $item['cantidad'];
-                }
+        return redirect('/ventas')->with('status', "Venta #{$venta->id} registrada correctamente.");
 
-                $impuesto = $subtotal * 0.16;
-                $total = $subtotal + $impuesto;
-
-                // 2. Crear pedido (sin cliente)
-                $pedido = \App\Models\Pedido::create([
-                    'folio' => 'VEN-' . strtoupper(uniqid()),                 
-                    'estado' => 'completado',
-                    'subtotal' => $subtotal,
-                    'impuesto' => $impuesto,
-                    'total' => $total,
-                    'id_usuario' => Auth::id(),
-                ]);
-
-                // 3. Crear venta
-                \App\Models\Venta::create([
-                    'id_pedido' => $pedido->id,
-                    'fecha' => now(),
-                    'total' => $total,
-                    'metodo_pago' => $request->metodo_pago,
-                    'estado' => 'completado',
-                    'id_usuario' => Auth::id(),
-                ]);
-
-                // 4. Detalles + stock + movimiento
-                foreach ($request->items as $item) {
-                    $producto = Producto::findOrFail($item['id_producto']);
-
-                    \App\Models\DetallePedido::create([
-                        'id_pedido' => $pedido->id,
-                        'id_producto' => $producto->id,
-                        'cantidad' => $item['cantidad'],
-                        'precio_unitario' => $producto->precio_venta,
-                        'subtotal' => $producto->precio_venta * $item['cantidad'],
-                    ]);
-
-                    $producto->existencia -= $item['cantidad'];
-                    $producto->save();
-
-                    \App\Models\InventarioMovimiento::create([
-                        'id_producto' => $producto->id,
-                        'tipo' => 'salida',
-                        'cantidad' => $item['cantidad'],
-                        'motivo' => "Venta {$pedido->folio}",
-                        'id_usuario' => Auth::id(),
-                    ]);
-                }
-
-                DB::commit();
-
-                return redirect('/ventas')->with('status', "Venta {$pedido->folio} registrada correctamente.");
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return back()->withErrors(['venta' => $e->getMessage()]);
-            }
-        });
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->withErrors(['venta' => $e->getMessage()]);
+    }
+});
     });
 
     // Usuarios y permisos: solo administrador

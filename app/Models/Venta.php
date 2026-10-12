@@ -17,10 +17,10 @@ class Venta extends Model
         'id_usuario',
     ];
 
-    public function pedido()
-    {
-        return $this->belongsTo(Pedido::class, 'id_pedido', 'id');
-    }
+    public function detalles()
+{
+    return $this->hasMany(VentaDetalle::class, 'id_venta', 'id');
+}
     public function usuario()
     {
     return $this->belongsTo(User::class, 'id_usuario', 'id');
