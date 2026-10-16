@@ -13,14 +13,14 @@
 
     <div class="dashboard">
 
-        <x-sidebar active-page="ventas" />
+        <x-sidebar active-page="pedidos" />
 
         <main class="dashboard-content">
 
             <header class="dashboard-header">
                 <div>
-                    <h2>Nueva venta</h2>
-                    <p>Busca productos y arma la venta</p>
+                    <h2>Nueva requisición</h2>
+                    <p>Solicita reabasto de productos al administrador</p>
                 </div>
 
                 <x-profile-card />
@@ -35,6 +35,7 @@
                     </ul>
                 </div>
             @endif
+
 
             <form method="POST" action="/ventas" id="formVenta">
                 @csrf
@@ -111,10 +112,12 @@
 
     <script>
         const carrito = [];
+        const sugeridoInicial = @json($sugerido);
 
         const inputBuscar = document.getElementById('buscarProducto');
         const sugerenciasBox = document.getElementById('sugerencias');
         const carritoBody = document.getElementById('carritoBody');
+
         const ventaTotalEl = document.getElementById('ventaTotal');
         const formVenta = document.getElementById('formVenta');
         const btnConfirmar = document.getElementById('btnConfirmarVenta');
@@ -125,7 +128,6 @@
 
         inputBuscar.addEventListener('input', function () {
             const termino = this.value.trim();
-
             clearTimeout(timeoutBusqueda);
 
             if (termino.length < 2) {
@@ -155,6 +157,7 @@
                         <span>${p.codigo} · Existencia: ${p.existencia}</span>
                     </div>
                     <span>$${Number(p.precio_venta).toFixed(2)}</span>
+
                 </div>
             `).join('');
 
@@ -162,7 +165,7 @@
 
             sugerenciasBox.querySelectorAll('.venta-sugerencia').forEach((el, index) => {
                 el.addEventListener('click', () => {
-                    agregarAlCarrito(productos[index]);
+                    agregarAlCarrito(productos[index].id, productos[index].nombre, 1);
                     sugerenciasBox.classList.remove('open');
                     inputBuscar.value = '';
                 });
@@ -173,7 +176,7 @@
             const existente = carrito.find(item => item.id_producto === producto.id_producto);
 
             if (existente) {
-                existente.cantidad += 1;
+                existente.cantidad += cantidad;
             } else {
                 carrito.push({
                     id_producto: producto.id_producto,
@@ -184,7 +187,6 @@
                     cantidad: 1,
                 });
             }
-
             renderCarrito();
         }
 
@@ -193,19 +195,23 @@
             if (index !== -1) {
                 carrito.splice(index, 1);
             }
+
             renderCarrito();
         }
 
         function cambiarCantidad(id, nuevaCantidad) {
+
             const item = carrito.find(item => item.id_producto === id);
             if (item) {
                 item.cantidad = Math.max(1, parseInt(nuevaCantidad) || 1);
             }
+
             renderCarrito();
         }
 
         function renderCarrito() {
             if (carrito.length === 0) {
+
                 carritoBody.innerHTML = `
                     <tr id="carritoVacio">
                         <td colspan="5" style="text-align: center; color: var(--muted);">
@@ -302,6 +308,10 @@
                 return;
             }
         });
+
+        if (sugeridoInicial) {
+            agregarAlCarrito(sugeridoInicial.id, sugeridoInicial.nombre, sugeridoInicial.cantidad);
+        }
     </script>
 
 </body>
