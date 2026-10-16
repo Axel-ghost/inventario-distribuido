@@ -9,7 +9,6 @@ class Venta extends Model
     protected $table = 'ventas';
 
     protected $fillable = [
-        'id_pedido',
         'fecha',
         'total',
         'metodo_pago',
