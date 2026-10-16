@@ -13,14 +13,14 @@
 
     <div class="dashboard">
 
-        <x-sidebar active-page="pedidos" />
+        <x-sidebar active-page="ventas" />
 
         <main class="dashboard-content">
 
             <header class="dashboard-header">
                 <div>
-                    <h2>Nueva requisición</h2>
-                    <p>Solicita reabasto de productos al administrador</p>
+                    <h2>Nueva venta</h2>
+                    <p>Busca productos y arma la venta</p>
                 </div>
 
                 <x-profile-card />
@@ -35,7 +35,6 @@
                     </ul>
                 </div>
             @endif
-
 
             <form method="POST" action="/ventas" id="formVenta">
                 @csrf
@@ -112,12 +111,10 @@
 
     <script>
         const carrito = [];
-        const sugeridoInicial = @json($sugerido);
 
         const inputBuscar = document.getElementById('buscarProducto');
         const sugerenciasBox = document.getElementById('sugerencias');
         const carritoBody = document.getElementById('carritoBody');
-
         const ventaTotalEl = document.getElementById('ventaTotal');
         const formVenta = document.getElementById('formVenta');
         const btnConfirmar = document.getElementById('btnConfirmarVenta');
@@ -128,6 +125,7 @@
 
         inputBuscar.addEventListener('input', function () {
             const termino = this.value.trim();
+
             clearTimeout(timeoutBusqueda);
 
             if (termino.length < 2) {
@@ -157,7 +155,6 @@
                         <span>${p.codigo} · Existencia: ${p.existencia}</span>
                     </div>
                     <span>$${Number(p.precio_venta).toFixed(2)}</span>
-
                 </div>
             `).join('');
 
@@ -165,7 +162,7 @@
 
             sugerenciasBox.querySelectorAll('.venta-sugerencia').forEach((el, index) => {
                 el.addEventListener('click', () => {
-                    agregarAlCarrito(productos[index].id, productos[index].nombre, 1);
+                    agregarAlCarrito(productos[index]);
                     sugerenciasBox.classList.remove('open');
                     inputBuscar.value = '';
                 });
@@ -176,7 +173,7 @@
             const existente = carrito.find(item => item.id_producto === producto.id_producto);
 
             if (existente) {
-                existente.cantidad += cantidad;
+                existente.cantidad += 1;
             } else {
                 carrito.push({
                     id_producto: producto.id_producto,
@@ -187,6 +184,7 @@
                     cantidad: 1,
                 });
             }
+
             renderCarrito();
         }
 
@@ -195,23 +193,19 @@
             if (index !== -1) {
                 carrito.splice(index, 1);
             }
-
             renderCarrito();
         }
 
         function cambiarCantidad(id, nuevaCantidad) {
-
             const item = carrito.find(item => item.id_producto === id);
             if (item) {
                 item.cantidad = Math.max(1, parseInt(nuevaCantidad) || 1);
             }
-
             renderCarrito();
         }
 
         function renderCarrito() {
             if (carrito.length === 0) {
-
                 carritoBody.innerHTML = `
                     <tr id="carritoVacio">
                         <td colspan="5" style="text-align: center; color: var(--muted);">
@@ -272,7 +266,6 @@
 
             ventaTotalEl.textContent = '$' + total.toFixed(2);
 
-            // Si hay exceso: mostrar aviso y DESHABILITAR el botón
             if (stockInvalido) {
                 alertaStock.style.display = 'block';
                 btnConfirmar.disabled = true;
@@ -292,7 +285,6 @@
             }
         });
 
-        // Confirmación antes de enviar (solo cuando el botón está activo)
         formVenta.addEventListener('submit', function (e) {
             if (carrito.length === 0) {
                 e.preventDefault();
@@ -300,7 +292,6 @@
                 return;
             }
 
-            // Si llegó aquí, es porque NO hay exceso (el botón estaba habilitado)
             const continuar = confirm('¿Deseas continuar con la compra?');
 
             if (!continuar) {
@@ -308,10 +299,6 @@
                 return;
             }
         });
-
-        if (sugeridoInicial) {
-            agregarAlCarrito(sugeridoInicial.id, sugeridoInicial.nombre, sugeridoInicial.cantidad);
-        }
     </script>
 
 </body>

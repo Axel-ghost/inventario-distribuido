@@ -500,15 +500,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/ventas/crear', function () {
         return view('ventas.crear');
         });
-
-        Route::post('/ventas', function (Request $request) {
-            $data = $request->validate([
-                'items' => ['required', 'array', 'min:1'],
-            ]);
-
-            // TEMPORAL hasta que existan las tablas ventas / detalle_ventas
-            dd($data);
-        });
     });
 
     // Búsqueda de productos: administrador, vendedor y almacén (ventas Y pedidos la usan)
