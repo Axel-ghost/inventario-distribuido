@@ -14,56 +14,73 @@
 
         <x-sidebar active-page="pedidos" />
 
-        <main class="dashboard-content">
+    <main class="dashboard-content">
 
-            <header class="dashboard-header">
-                <div>
-                    <h2>Nueva requisición</h2>
-                    <p>Solicita reabasto de productos al administrador</p>
+    @if ($errors->any())
+        <div style="color: red; background: #fee; padding: 16px; margin-bottom: 16px; border-radius: 8px;">
+            <strong>Errores:</strong>
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    @if (session('status'))
+        <div style="color: green; background: #efe; padding: 16px; margin-bottom: 16px; border-radius: 8px;">
+            {{ session('status') }}
+        </div>
+    @endif
+
+    <header class="dashboard-header">
+        <div>
+            <h2>Nueva requisición</h2>
+            <p>Solicita reabasto de productos al administrador</p>
+        </div>
+
+        <x-profile-card />
+    </header>
+
+    <div class="venta-layout">
+
+        <div class="venta-buscador">
+            <input type="text" id="buscarProducto" placeholder="Busca por nombre o código..." autocomplete="off">
+            <div id="sugerencias" class="venta-sugerencias"></div>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad solicitada</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="carritoBody">
+                <tr id="carritoVacio">
+                    <td colspan="3" style="text-align: center; color: var(--muted);">Aún no has agregado productos</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <form id="formPedido" method="POST" action="/pedidos">
+            @csrf
+
+            <div class="venta-resumen">
+                <div class="venta-total">
+                    <span>Total de productos</span>
+                    <strong id="totalItems">0</strong>
                 </div>
 
-                <x-profile-card />
-            </header>
-
-            <div class="venta-layout">
-
-                <div class="venta-buscador">
-                    <input type="text" id="buscarProducto" placeholder="Busca por nombre o código..." autocomplete="off">
-                    <div id="sugerencias" class="venta-sugerencias"></div>
-                </div>
-
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Cantidad solicitada</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="carritoBody">
-                        <tr id="carritoVacio">
-                            <td colspan="3" style="text-align: center; color: var(--muted);">Aún no has agregado productos</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <form id="formPedido" method="POST" action="/pedidos">
-                    @csrf
-
-                    <div class="venta-resumen">
-                        <div class="venta-total">
-                            <span>Total de productos</span>
-                            <strong id="totalItems">0</strong>
-                        </div>
-
-                        <x-order-button id="btnEnviarPedido" label="Enviar requisición" />
-                    </div>
-                </form>
-
+                <x-order-button id="btnEnviarPedido" label="Enviar requisición" />
             </div>
+        </form>
 
-        </main>
+    </div>
 
+</main>
+        
     </div>
 
     <script>
@@ -77,6 +94,7 @@
 
         let timeoutBusqueda = null;
 
+        // --- BUSCADOR ---
         inputBuscar.addEventListener('input', function () {
             const termino = this.value.trim();
             clearTimeout(timeoutBusqueda);
@@ -102,42 +120,48 @@
             }
 
             sugerenciasBox.innerHTML = productos.map(p => `
-                <div class="venta-sugerencia" data-id="${p.id}">
+                <div class="venta-sugerencia" data-id="${p.id_producto}" data-nombre="${p.nombre}">
                     <div><strong>${p.nombre}</strong><span>${p.codigo}</span></div>
                 </div>
             `).join('');
 
             sugerenciasBox.classList.add('open');
 
-            sugerenciasBox.querySelectorAll('.venta-sugerencia').forEach((el, index) => {
+            sugerenciasBox.querySelectorAll('.venta-sugerencia').forEach((el) => {
                 el.addEventListener('click', () => {
-                    agregarAlCarrito(productos[index].id, productos[index].nombre, 1);
+                    const id = parseInt(el.getAttribute('data-id'));
+                    const nombre = el.getAttribute('data-nombre');
+                    agregarAlCarrito(id, nombre);
                     sugerenciasBox.classList.remove('open');
                     inputBuscar.value = '';
                 });
             });
         }
 
-        function agregarAlCarrito(id, nombre, cantidad) {
+        // --- CARRITO ---
+        function agregarAlCarrito(id, nombre) {
             const existente = carrito.find(item => item.id === id);
             if (existente) {
-                existente.cantidad += cantidad;
+                existente.cantidad += 1; // Si ya existe, suma 1
             } else {
-                carrito.push({ id, nombre, cantidad });
+                carrito.push({ id, nombre, cantidad: 1 }); // Si es nuevo, entra con 1
             }
             renderCarrito();
         }
 
-        function quitarDelCarrito(id) {
-            const index = carrito.findIndex(item => item.id === id);
-            if (index !== -1) carrito.splice(index, 1);
-            renderCarrito();
+        function quitarDelCarrito(index) {
+            carrito.splice(index, 1); 
+            renderCarrito();          
         }
 
-        function cambiarCantidad(id, nuevaCantidad) {
-            const item = carrito.find(item => item.id === id);
-            if (item) item.cantidad = Math.max(1, parseInt(nuevaCantidad) || 1);
-            renderCarrito();
+        // Se ejecuta cada vez que el usuario cambia el número en el input
+        function actualizarCantidad(index, valor) {
+            let cantidad = parseInt(valor);
+            if (isNaN(cantidad) || cantidad < 1) {
+                cantidad = 1;
+            }
+            carrito[index].cantidad = cantidad;
+            // NOTA: No llamamos a renderCarrito() aquí para que el input no pierda el foco
         }
 
         function renderCarrito() {
@@ -147,20 +171,26 @@
                 return;
             }
 
-            carritoBody.innerHTML = carrito.map(item => `
+            // Usamos el 'index' (posición) para todo
+            carritoBody.innerHTML = carrito.map((item, index) => `
                 <tr>
                     <td>${item.nombre}</td>
                     <td>
-                        <input type="number" min="1" value="${item.cantidad}" class="venta-cantidad-input"
-                               onchange="cambiarCantidad(${item.id}, this.value)">
+                        <input type="number" min="1" 
+                               value="${item.cantidad}" 
+                               class="venta-cantidad-input" 
+                               onchange="actualizarCantidad(${index}, this.value)">
                     </td>
-                    <td><button type="button" class="venta-quitar" onclick="quitarDelCarrito(${item.id})">✕</button></td>
+                    <td>
+                        <button type="button" class="venta-quitar" onclick="quitarDelCarrito(${index})">✕</button>
+                    </td>
                 </tr>
             `).join('');
 
             totalItemsEl.textContent = carrito.length;
         }
 
+        // --- OTROS EVENTOS ---
         document.addEventListener('click', function (event) {
             if (!event.target.closest('.venta-buscador')) {
                 sugerenciasBox.classList.remove('open');
@@ -199,7 +229,10 @@
         });
 
         if (sugeridoInicial) {
-            agregarAlCarrito(sugeridoInicial.id, sugeridoInicial.nombre, sugeridoInicial.cantidad);
+            agregarAlCarrito(sugeridoInicial.id, sugeridoInicial.nombre);
+            // Si el producto sugerido trae una cantidad específica, la forzamos:
+            carrito[0].cantidad = sugeridoInicial.cantidad;
+            renderCarrito();
         }
     </script>
 
