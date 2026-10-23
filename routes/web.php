@@ -652,3 +652,8 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 });
+
+Route::get('/seed-corebuild-9f21', function () {
+    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+    return '<pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
+});
