@@ -18,8 +18,18 @@ Route::get('/', function () {
     }
 
     return view('login');
+})->name('inicio'); // Nota: le cambié el nombre a 'inicio' para no chocar con la ruta /login
+
+// 1. Ruta para MOSTRAR el formulario (GET)
+Route::get('/login', function () {
+    if (Auth::check()) {
+        $destinoDefault = Auth::user()->rol === 'cliente' ? '/tienda' : '/dashboard';
+        return redirect($destinoDefault);
+    }
+    return view('login');
 })->name('login');
 
+// 2. Ruta para PROCESAR el formulario (POST)
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'usuario' => ['required', 'string'],
@@ -29,7 +39,8 @@ Route::post('/login', function (Request $request) {
     if (Auth::attempt(['usuario' => $credentials['usuario'], 'password' => $credentials['password']])) {
         $request->session()->regenerate();
 
-        if (! Auth::user()->activo) {
+        // ✅ CORREGIDO AQUÍ: Ahora usa 'activo' que es el nombre real de tu columna
+        if (! Auth::user()->activo) { 
             Auth::logout();
             return back()->withErrors(['usuario' => 'Tu cuenta está desactivada.']);
         }
@@ -42,6 +53,7 @@ Route::post('/login', function (Request $request) {
     return back()->withErrors(['usuario' => 'Usuario o contraseña incorrectos.']);
 })->name('login.attempt');
 
+// 3. Tu ruta de logout
 Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
@@ -162,7 +174,7 @@ Route::post('/tienda/registro', function (Request $request) {
 Route::middleware(['auth'])->group(function () {
 
     // Todos los roles internos
-        Route::get('/dashboard', function () {
+    Route::get('/dashboard', function () {
         if (Auth::user()->rol === 'cliente') {
             return redirect('/tienda');
         }
@@ -182,7 +194,7 @@ Route::middleware(['auth'])->group(function () {
             ->limit(3)
             ->get();
 
-        // --- NUEVA LÓGICA: OPERACIONES RECIENTES ---
+        // --- OPERACIONES RECIENTES ---
         
         // 1. Obtener últimas 5 ventas
         $ventas = Venta::orderByDesc('fecha_venta')->take(5)->get()->map(function ($venta) {
@@ -206,20 +218,19 @@ Route::middleware(['auth'])->group(function () {
             ];
         });
 
-        // 3. Unir, ordenar por fecha real y tomar los 5 más recientes de la mezcla
+        // 3. Unir, ordenar por fecha real y tomar los 5 más recientes
         $operacionesRecientes = $ventas->concat($pedidos)
             ->sortByDesc('timestamp')
             ->take(5)
             ->values();
 
-        // Enviamos la nueva variable a la vista
         return view('dashboard', compact(
             'totalProductos',
             'stockBajo',
             'ventasDelMes',
             'pedidosPendientes',
             'productosStockBajo',
-            'operacionesRecientes' // <-- Agregada aquí
+            'operacionesRecientes'
         ));
     });
 
@@ -525,8 +536,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Registrar ventas: solo administrador y vendedor
-    // (debe ir ANTES del grupo de "Consultar ventas" para que /ventas/crear
-    // no sea interceptada por la ruta comodín /ventas/{venta})
     Route::middleware('rol:administrador,vendedor')->group(function () {
 
         Route::get('/ventas/crear', function () {
@@ -684,4 +693,3 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 });
-
