@@ -9,12 +9,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Si estamos en SQLite, hacemos la conversión de columna
         if (DB::getDriverName() === 'sqlite') {
-            // SQLite guarda el enum como una restricción CHECK fija.
-            // No se puede "editar" esa restricción directamente, así
-            // que creamos una columna nueva sin esa limitación, copiamos
-            // los datos, y sustituimos la columna vieja por la nueva.
-
             Schema::table('users', function (Blueprint $table) {
                 $table->string('rol_temp')->nullable()->after('rol');
             });
@@ -30,15 +26,14 @@ return new class extends Migration
             });
 
             DB::statement("UPDATE users SET rol = 'vendedor' WHERE rol IS NULL");
-
-            return;
         }
-
-        DB::statement("ALTER TABLE users MODIFY rol ENUM('administrador','vendedor','caja','almacen','cliente') NOT NULL DEFAULT 'vendedor'");
+        
+        // Si estamos en PostgreSQL o MySQL, no hacemos nada aquí.
+        // La columna 'rol' ya se creó como string en la migración base.
     }
 
     public function down(): void
     {
-        // No se revierte de forma simple; se deja tal cual.
+        // No se revierte de forma simple.
     }
 };
