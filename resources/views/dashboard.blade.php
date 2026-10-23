@@ -72,7 +72,7 @@
 
                     <div>
                         <span>Productos</span>
-                        <strong>128</strong>
+                        <strong>{{ $totalProductos }}</strong>
                     </div>
 
                 </article>
@@ -86,7 +86,7 @@
 
                     <div>
                         <span>Stock bajo</span>
-                        <strong>12</strong>
+                        <strong>{{ $stockBajo }}</strong>
                     </div>
 
                 </article>
@@ -100,7 +100,7 @@
 
                     <div>
                         <span>Ventas del mes</span>
-                        <strong>$45,280</strong>
+                        <strong>${{ number_format($ventasDelMes, 2) }}</strong>
                     </div>
 
                 </article>
@@ -114,7 +114,7 @@
 
                     <div>
                         <span>Pedidos pendientes</span>
-                        <strong>8</strong>
+                        <strong>{{ $pedidosPendientes }}</strong>
                     </div>
 
                 </article>
@@ -139,70 +139,38 @@
                             </h3>
                         </div>
 
-                        <button>
-                            Ver todo
-                        </button>
+                        <a href="/inventario">
+                            <button type="button">
+                                Ver todo
+                            </button>
+                        </a>
 
                     </div>
 
 
                     <div class="inventory-list">
 
-                        <div class="inventory-item">
+                        @forelse ($productosStockBajo as $producto)
+                            <div class="inventory-item">
 
-                            <div>
-                                <strong>
-                                    RTX 5070
+                                <div>
+                                    <strong>
+                                        {{ $producto->nombre }}
+                                    </strong>
+
+                                    <span>
+                                        {{ $producto->categoria ?? 'Sin categoría' }}
+                                    </span>
+                                </div>
+
+                                <strong class="stock-warning">
+                                    {{ $producto->existencia }} unidades
                                 </strong>
 
-                                <span>
-                                    Tarjeta gráfica
-                                </span>
                             </div>
-
-                            <strong class="stock-warning">
-                                5 unidades
-                            </strong>
-
-                        </div>
-
-
-                        <div class="inventory-item">
-
-                            <div>
-                                <strong>
-                                    Ryzen 7 9800X
-                                </strong>
-
-                                <span>
-                                    Procesador
-                                </span>
-                            </div>
-
-                            <strong class="stock-warning">
-                                7 unidades
-                            </strong>
-
-                        </div>
-
-
-                        <div class="inventory-item">
-
-                            <div>
-                                <strong>
-                                    RAM 32GB DDR5
-                                </strong>
-
-                                <span>
-                                    Memoria
-                                </span>
-                            </div>
-
-                            <strong class="stock-warning">
-                                8 unidades
-                            </strong>
-
-                        </div>
+                        @empty
+                            <p>No hay productos con stock bajo por el momento.</p>
+                        @endforelse
 
                     </div>
 
