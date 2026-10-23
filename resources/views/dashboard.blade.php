@@ -195,57 +195,36 @@
 
                     <div class="activity-list">
 
-                        <div class="activity-item">
+    @forelse ($operacionesRecientes as $operacion)
+        <div class="activity-item">
 
-                            <span class="activity-dot"></span>
+            <!-- Puntito de color: verde para ventas, naranja para pedidos -->
+            <span class="activity-dot" style="background-color: {{ $operacion['tipo'] === 'venta' ? '#10b981' : '#f59e0b' }};"></span>
 
-                            <div>
-                                <strong>
-                                    Nueva venta registrada
-                                </strong>
+            <div>
+                <strong>
+                    {{ $operacion['titulo'] }}
+                </strong>
+                
+                <span style="display: block; font-size: 0.85em; color: #6b7280; margin-bottom: 2px;">
+                    {{ $operacion['detalle'] }}
+                </span>
 
-                                <span>
-                                    Hace 10 minutos
-                                </span>
-                            </div>
+                <span>
+                    {{ $operacion['fecha'] }}
+                </span>
+            </div>
 
-                        </div>
+        </div>
+    @empty
+        <div class="activity-item">
+            <div>
+                <span>No hay operaciones recientes por el momento.</span>
+            </div>
+        </div>
+    @endforelse
 
-
-                        <div class="activity-item">
-
-                            <span class="activity-dot"></span>
-
-                            <div>
-                                <strong>
-                                    Pedido autorizado
-                                </strong>
-
-                                <span>
-                                    Hace 25 minutos
-                                </span>
-                            </div>
-
-                        </div>
-
-
-                        <div class="activity-item">
-
-                            <span class="activity-dot"></span>
-
-                            <div>
-                                <strong>
-                                    Producto actualizado
-                                </strong>
-
-                                <span>
-                                    Hace 1 hora
-                                </span>
-                            </div>
-
-                        </div>
-
-                    </div>
+</div>
 
                 </article>
 

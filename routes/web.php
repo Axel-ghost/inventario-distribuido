@@ -162,7 +162,7 @@ Route::post('/tienda/registro', function (Request $request) {
 Route::middleware(['auth'])->group(function () {
 
     // Todos los roles internos
-    Route::get('/dashboard', function () {
+        Route::get('/dashboard', function () {
         if (Auth::user()->rol === 'cliente') {
             return redirect('/tienda');
         }
@@ -182,12 +182,44 @@ Route::middleware(['auth'])->group(function () {
             ->limit(3)
             ->get();
 
+        // --- NUEVA LÓGICA: OPERACIONES RECIENTES ---
+        
+        // 1. Obtener últimas 5 ventas
+        $ventas = Venta::orderByDesc('fecha_venta')->take(5)->get()->map(function ($venta) {
+            return [
+                'tipo' => 'venta',
+                'titulo' => 'Venta registrada (Folio: ' . $venta->folio . ')',
+                'detalle' => 'Total: $' . number_format($venta->total, 2),
+                'fecha' => $venta->fecha_venta ? $venta->fecha_venta->diffForHumans() : 'Fecha desconocida',
+                'timestamp' => $venta->fecha_venta ? $venta->fecha_venta->timestamp : 0,
+            ];
+        });
+
+        // 2. Obtener últimos 5 pedidos
+        $pedidos = Pedido::with('solicitante')->orderByDesc('fecha_solicitud')->take(5)->get()->map(function ($pedido) {
+            return [
+                'tipo' => 'pedido',
+                'titulo' => 'Pedido ' . ucfirst(str_replace('_', ' ', $pedido->estado)) . ' (Folio: ' . $pedido->folio . ')',
+                'detalle' => 'Solicitado por: ' . ($pedido->solicitante ? $pedido->solicitante->name : 'Desconocido'),
+                'fecha' => $pedido->fecha_solicitud ? $pedido->fecha_solicitud->diffForHumans() : 'Fecha desconocida',
+                'timestamp' => $pedido->fecha_solicitud ? $pedido->fecha_solicitud->timestamp : 0,
+            ];
+        });
+
+        // 3. Unir, ordenar por fecha real y tomar los 5 más recientes de la mezcla
+        $operacionesRecientes = $ventas->concat($pedidos)
+            ->sortByDesc('timestamp')
+            ->take(5)
+            ->values();
+
+        // Enviamos la nueva variable a la vista
         return view('dashboard', compact(
             'totalProductos',
             'stockBajo',
             'ventasDelMes',
             'pedidosPendientes',
-            'productosStockBajo'
+            'productosStockBajo',
+            'operacionesRecientes' // <-- Agregada aquí
         ));
     });
 
