@@ -1,11 +1,14 @@
 <?php
 
 use App\Models\DetallePedido;
+use App\Models\DetalleVenta;
 use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\User;
+use App\Models\Venta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -164,7 +167,28 @@ Route::middleware(['auth'])->group(function () {
             return redirect('/tienda');
         }
 
-        return view('dashboard');
+        $totalProductos = Producto::count();
+
+        $stockBajo = Producto::whereColumn('existencia', '<=', 'stock_minimo')->count();
+
+        $ventasDelMes = Venta::whereMonth('fecha_venta', now()->month)
+            ->whereYear('fecha_venta', now()->year)
+            ->sum('total');
+
+        $pedidosPendientes = Pedido::whereIn('estado', ['solicitado', 'en_revision'])->count();
+
+        $productosStockBajo = Producto::whereColumn('existencia', '<=', 'stock_minimo')
+            ->orderBy('existencia')
+            ->limit(3)
+            ->get();
+
+        return view('dashboard', compact(
+            'totalProductos',
+            'stockBajo',
+            'ventasDelMes',
+            'pedidosPendientes',
+            'productosStockBajo'
+        ));
     });
 
     Route::post('/perfil/foto', function (Request $request) {
@@ -205,14 +229,54 @@ Route::middleware(['auth'])->group(function () {
             return redirect('/tienda');
         }
 
-        $total = collect($carrito)->sum(fn ($item) => $item['precio'] * $item['cantidad']);
+        try {
+            $resultado = DB::transaction(function () use ($carrito) {
+                $total = 0;
+                $itemsConfirmados = [];
+                $venta = Venta::create([
+                    'folio' => 'VEN-' . now()->format('YmdHis'),
+                    'usuario_id' => Auth::id(),
+                    'total' => 0,
+                    'fecha_venta' => now(),
+                ]);
+
+                foreach ($carrito as $item) {
+                    $producto = Producto::where('id', $item['producto_id'])->lockForUpdate()->first();
+
+                    if (! $producto || $producto->existencia < $item['cantidad']) {
+                        throw new \Exception("Ya no hay suficiente existencia de '{$item['nombre']}'. Disponible: " . ($producto->existencia ?? 0));
+                    }
+
+                    $subtotal = $producto->precio_venta * $item['cantidad'];
+
+                    DetalleVenta::create([
+                        'venta_id' => $venta->id,
+                        'producto_id' => $producto->id,
+                        'cantidad' => $item['cantidad'],
+                        'precio_unitario' => $producto->precio_venta,
+                        'subtotal' => $subtotal,
+                    ]);
+
+                    $producto->decrement('existencia', $item['cantidad']);
+
+                    $total += $subtotal;
+                    $itemsConfirmados[] = $item;
+                }
+
+                $venta->update(['total' => $total]);
+
+                return ['venta' => $venta, 'total' => $total, 'items' => $itemsConfirmados];
+            });
+        } catch (\Exception $e) {
+            return back()->withErrors(['checkout' => $e->getMessage()]);
+        }
 
         session(['ultimo_pedido_cliente' => [
-            'folio' => 'PED-' . now()->format('YmdHis'),
+            'folio' => $resultado['venta']->folio,
             'fecha' => now()->format('d/m/Y H:i'),
             'cliente' => Auth::user()->name . ' ' . Auth::user()->apellidos,
-            'items' => array_values($carrito),
-            'total' => $total,
+            'items' => $resultado['items'],
+            'total' => $resultado['total'],
         ]]);
 
         session()->forget('carrito');
@@ -428,47 +492,9 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // Consultar ventas: administrador, vendedor y caja
-    Route::middleware('rol:administrador,vendedor,caja')->group(function () {
-
-        Route::get('/ventas', function () {
-            $ventas = [
-                [
-                    'id' => 1,
-                    'fecha_venta' => '2026-09-20 10:15',
-                    'usuario' => 'Axel Admin',
-                    'items' => [
-                        ['producto' => 'Teclado inalámbrico', 'cantidad' => 2, 'precio_unitario' => 350, 'subtotal' => 700],
-                        ['producto' => 'Mouse óptico', 'cantidad' => 1, 'precio_unitario' => 180, 'subtotal' => 180],
-                    ],
-                    'total' => 880,
-                ],
-                [
-                    'id' => 2,
-                    'fecha_venta' => '2026-09-21 16:40',
-                    'usuario' => 'Axel Admin',
-                    'items' => [
-                        ['producto' => 'Monitor 24"', 'cantidad' => 1, 'precio_unitario' => 2800, 'subtotal' => 2800],
-                    ],
-                    'total' => 2800,
-                ],
-                [
-                    'id' => 3,
-                    'fecha_venta' => '2026-09-22 09:05',
-                    'usuario' => 'Axel Admin',
-                    'items' => [
-                        ['producto' => 'Silla gamer', 'cantidad' => 1, 'precio_unitario' => 3200, 'subtotal' => 3200],
-                        ['producto' => 'Mouse óptico', 'cantidad' => 2, 'precio_unitario' => 180, 'subtotal' => 360],
-                    ],
-                    'total' => 3560,
-                ],
-            ];
-
-            return view('ventas', compact('ventas'));
-        });
-    });
-
     // Registrar ventas: solo administrador y vendedor
+    // (debe ir ANTES del grupo de "Consultar ventas" para que /ventas/crear
+    // no sea interceptada por la ruta comodín /ventas/{venta})
     Route::middleware('rol:administrador,vendedor')->group(function () {
 
         Route::get('/ventas/crear', function () {
@@ -478,10 +504,70 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/ventas', function (Request $request) {
             $data = $request->validate([
                 'items' => ['required', 'array', 'min:1'],
+                'items.*.producto_id' => ['required', 'exists:productos,id'],
+                'items.*.cantidad' => ['required', 'integer', 'min:1'],
             ]);
 
-            // TEMPORAL hasta que existan las tablas ventas / detalle_ventas
-            dd($data);
+            try {
+                $venta = DB::transaction(function () use ($data) {
+                    $venta = Venta::create([
+                        'folio' => 'VEN-' . now()->format('YmdHis'),
+                        'usuario_id' => Auth::id(),
+                        'total' => 0,
+                        'fecha_venta' => now(),
+                    ]);
+
+                    $total = 0;
+
+                    foreach ($data['items'] as $item) {
+                        $producto = Producto::where('id', $item['producto_id'])->lockForUpdate()->first();
+
+                        if (! $producto || $producto->existencia < $item['cantidad']) {
+                            throw new \Exception("Ya no hay suficiente existencia de '{$producto->nombre}'. Disponible: " . ($producto->existencia ?? 0));
+                        }
+
+                        $subtotal = $producto->precio_venta * $item['cantidad'];
+
+                        DetalleVenta::create([
+                            'venta_id' => $venta->id,
+                            'producto_id' => $producto->id,
+                            'cantidad' => $item['cantidad'],
+                            'precio_unitario' => $producto->precio_venta,
+                            'subtotal' => $subtotal,
+                        ]);
+
+                        $producto->decrement('existencia', $item['cantidad']);
+
+                        $total += $subtotal;
+                    }
+
+                    $venta->update(['total' => $total]);
+
+                    return $venta;
+                });
+            } catch (\Exception $e) {
+                return back()->withErrors(['venta' => $e->getMessage()]);
+            }
+
+            return redirect('/ventas/' . $venta->id)->with('status', 'Venta ' . $venta->folio . ' registrada correctamente.');
+        });
+    });
+
+    // Consultar ventas: administrador, vendedor y caja
+    Route::middleware('rol:administrador,vendedor,caja')->group(function () {
+
+        Route::get('/ventas', function () {
+            $ventas = Venta::with('usuario', 'detalles.producto')
+                ->orderByDesc('fecha_venta')
+                ->get();
+
+            return view('ventas', compact('ventas'));
+        });
+
+        Route::get('/ventas/{venta}', function (Venta $venta) {
+            $venta->load('usuario', 'detalles.producto');
+
+            return view('ventas.show', compact('venta'));
         });
     });
 

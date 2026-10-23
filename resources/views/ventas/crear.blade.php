@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreBuild | Nueva requisición</title>
+    <title>CoreBuild | Nueva venta</title>
     @vite(['resources/css/app.css'])
 </head>
 
@@ -12,18 +12,22 @@
 
     <div class="dashboard">
 
-        <x-sidebar active-page="pedidos" />
+        <x-sidebar active-page="ventas" />
 
         <main class="dashboard-content">
 
             <header class="dashboard-header">
                 <div>
-                    <h2>Nueva requisición</h2>
-                    <p>Solicita reabasto de productos al administrador</p>
+                    <h2>Nueva venta</h2>
+                    <p>Busca productos y arma la venta</p>
                 </div>
 
                 <x-profile-card />
             </header>
+
+            @if ($errors->any())
+                <p style="color: #ef4444; margin-bottom: 16px;">{{ $errors->first() }}</p>
+            @endif
 
             <div class="venta-layout">
 
@@ -36,27 +40,29 @@
                     <thead>
                         <tr>
                             <th>Producto</th>
-                            <th>Cantidad solicitada</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                            <th>Subtotal</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody id="carritoBody">
                         <tr id="carritoVacio">
-                            <td colspan="3" style="text-align: center; color: var(--muted);">Aún no has agregado productos</td>
+                            <td colspan="5" style="text-align: center; color: var(--muted);">Aún no has agregado productos</td>
                         </tr>
                     </tbody>
                 </table>
 
-                <form id="formPedido" method="POST" action="/pedidos">
+                <form id="formVenta" method="POST" action="/ventas">
                     @csrf
 
                     <div class="venta-resumen">
                         <div class="venta-total">
-                            <span>Total de productos</span>
-                            <strong id="totalItems">0</strong>
+                            <span>Total</span>
+                            <strong id="ventaTotal">$0.00</strong>
                         </div>
 
-                        <x-order-button id="btnEnviarPedido" label="Enviar requisición" />
+                        <x-order-button id="btnConfirmarVenta" label="Confirmar venta" />
                     </div>
                 </form>
 
@@ -68,12 +74,11 @@
 
     <script>
         const carrito = [];
-        const sugeridoInicial = @json($sugerido);
 
         const inputBuscar = document.getElementById('buscarProducto');
         const sugerenciasBox = document.getElementById('sugerencias');
         const carritoBody = document.getElementById('carritoBody');
-        const totalItemsEl = document.getElementById('totalItems');
+        const ventaTotalEl = document.getElementById('ventaTotal');
 
         let timeoutBusqueda = null;
 
@@ -103,7 +108,11 @@
 
             sugerenciasBox.innerHTML = productos.map(p => `
                 <div class="venta-sugerencia" data-id="${p.id}">
-                    <div><strong>${p.nombre}</strong><span>${p.codigo}</span></div>
+                    <div>
+                        <strong>${p.nombre}</strong>
+                        <span>${p.codigo} · Existencia: ${p.existencia}</span>
+                    </div>
+                    <span>$${Number(p.precio_venta).toFixed(2)}</span>
                 </div>
             `).join('');
 
@@ -111,20 +120,28 @@
 
             sugerenciasBox.querySelectorAll('.venta-sugerencia').forEach((el, index) => {
                 el.addEventListener('click', () => {
-                    agregarAlCarrito(productos[index].id, productos[index].nombre, 1);
+                    agregarAlCarrito(productos[index]);
                     sugerenciasBox.classList.remove('open');
                     inputBuscar.value = '';
                 });
             });
         }
 
-        function agregarAlCarrito(id, nombre, cantidad) {
-            const existente = carrito.find(item => item.id === id);
+        function agregarAlCarrito(producto) {
+            const existente = carrito.find(item => item.id === producto.id);
+
             if (existente) {
-                existente.cantidad += cantidad;
+                existente.cantidad += 1;
             } else {
-                carrito.push({ id, nombre, cantidad });
+                carrito.push({
+                    id: producto.id,
+                    codigo: producto.codigo,
+                    nombre: producto.nombre,
+                    precio: Number(producto.precio_venta),
+                    cantidad: 1,
+                });
             }
+
             renderCarrito();
         }
 
@@ -142,23 +159,36 @@
 
         function renderCarrito() {
             if (carrito.length === 0) {
-                carritoBody.innerHTML = `<tr id="carritoVacio"><td colspan="3" style="text-align: center; color: var(--muted);">Aún no has agregado productos</td></tr>`;
-                totalItemsEl.textContent = '0';
+                carritoBody.innerHTML = `
+                    <tr id="carritoVacio">
+                        <td colspan="5" style="text-align: center; color: var(--muted);">Aún no has agregado productos</td>
+                    </tr>
+                `;
+                ventaTotalEl.textContent = '$0.00';
                 return;
             }
 
-            carritoBody.innerHTML = carrito.map(item => `
-                <tr>
-                    <td>${item.nombre}</td>
-                    <td>
-                        <input type="number" min="1" value="${item.cantidad}" class="venta-cantidad-input"
-                               onchange="cambiarCantidad(${item.id}, this.value)">
-                    </td>
-                    <td><button type="button" class="venta-quitar" onclick="quitarDelCarrito(${item.id})">✕</button></td>
-                </tr>
-            `).join('');
+            let total = 0;
 
-            totalItemsEl.textContent = carrito.length;
+            carritoBody.innerHTML = carrito.map(item => {
+                const subtotal = item.precio * item.cantidad;
+                total += subtotal;
+
+                return `
+                    <tr>
+                        <td>${item.nombre}</td>
+                        <td>$${item.precio.toFixed(2)}</td>
+                        <td>
+                            <input type="number" min="1" value="${item.cantidad}" class="venta-cantidad-input"
+                                   onchange="cambiarCantidad(${item.id}, this.value)">
+                        </td>
+                        <td>$${subtotal.toFixed(2)}</td>
+                        <td><button type="button" class="venta-quitar" onclick="quitarDelCarrito(${item.id})">✕</button></td>
+                    </tr>
+                `;
+            }).join('');
+
+            ventaTotalEl.textContent = '$' + total.toFixed(2);
         }
 
         document.addEventListener('click', function (event) {
@@ -167,17 +197,18 @@
             }
         });
 
-        document.getElementById('btnEnviarPedido').addEventListener('click', function () {
+        document.getElementById('btnConfirmarVenta').addEventListener('click', function () {
             if (carrito.length === 0) {
-                alert('Agrega al menos un producto.');
+                alert('Agrega al menos un producto antes de confirmar.');
                 return;
             }
 
             const boton = this;
+
             playOrderAnimation(boton, {
-                duration: 1800,
+                duration: 2200,
                 onComplete: function () {
-                    const form = document.getElementById('formPedido');
+                    const form = document.getElementById('formVenta');
 
                     carrito.forEach((item, index) => {
                         const inputId = document.createElement('input');
@@ -197,10 +228,6 @@
                 }
             });
         });
-
-        if (sugeridoInicial) {
-            agregarAlCarrito(sugeridoInicial.id, sugeridoInicial.nombre, sugeridoInicial.cantidad);
-        }
     </script>
 
 </body>

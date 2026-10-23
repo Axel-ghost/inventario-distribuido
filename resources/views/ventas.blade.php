@@ -25,12 +25,20 @@
                 <x-profile-card />
             </header>
 
-            <a href="/ventas/crear" class="btn-process" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; max-width: 200px; margin-bottom: 20px;">
-            <span class="btn-label">+ Nueva venta</span>
-            </a>
+            @if (session('status'))
+                <p style="color: #22c55e; margin-bottom: 16px;">{{ session('status') }}</p>
+            @endif
+
+            @if (in_array(Auth::user()->rol, ['administrador', 'vendedor']))
+                <a href="/ventas/crear" class="btn-process" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; max-width: 200px; margin-bottom: 20px;">
+                    <span class="btn-label">+ Nueva venta</span>
+                </a>
+            @endif
+
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th>Folio</th>
                         <th>Fecha</th>
                         <th>Vendedor</th>
                         <th>Productos</th>
@@ -38,18 +46,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($ventas as $venta)
-                        <tr>
-                            <td>{{ $venta['fecha_venta'] }}</td>
-                            <td>{{ $venta['usuario'] }}</td>
+                    @forelse ($ventas as $venta)
+                        <tr onclick="window.location='/ventas/{{ $venta->id }}'" style="cursor: pointer;">
+                            <td>{{ $venta->folio }}</td>
+                            <td>{{ $venta->fecha_venta->format('d/m/Y H:i') }}</td>
+                            <td>{{ $venta->usuario->name }} {{ $venta->usuario->apellidos }}</td>
                             <td>
-                                @foreach ($venta['items'] as $item)
-                                    {{ $item['producto'] }} (x{{ $item['cantidad'] }})@if (!$loop->last), @endif
+                                @foreach ($venta->detalles as $detalle)
+                                    {{ $detalle->producto->nombre }} (x{{ $detalle->cantidad }}){{ !$loop->last ? ', ' : '' }}
                                 @endforeach
                             </td>
-                            <td>${{ number_format($venta['total'], 2) }}</td>
+                            <td>${{ number_format($venta->total, 2) }}</td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr><td colspan="5" style="text-align: center; color: var(--muted);">No hay ventas registradas todavía</td></tr>
+                    @endforelse
                 </tbody>
             </table>
 
