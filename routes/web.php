@@ -693,3 +693,14 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 });
+Route::get('/debug-log-9f21', function () {
+    $path = storage_path('logs/laravel.log');
+
+    if (! file_exists($path)) {
+        return 'No existe el archivo de log.';
+    }
+
+    $contenido = file_get_contents($path);
+
+    return '<pre>' . e(substr($contenido, -6000)) . '</pre>';
+});
