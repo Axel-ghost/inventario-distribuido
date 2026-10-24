@@ -16,6 +16,14 @@
 
         <h2 style="margin-bottom: 20px;">Confirmar compra</h2>
 
+        @if ($errors->any())
+            <div class="alert alert-error" style="background:#3a1414; border:1px solid #7a2626; color:#ff8080; padding:12px 16px; border-radius:8px; margin-bottom:16px;">
+                @foreach ($errors->all() as $error)
+                    <p style="margin:0;">{{ $error }}</p>
+                @endforeach
+            </div>
+        @endif
+
         <table class="data-table">
             <thead>
                 <tr>
