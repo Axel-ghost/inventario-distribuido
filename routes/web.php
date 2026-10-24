@@ -653,3 +653,19 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+Route::get('/debug-log-9f21', function () {
+    $path = storage_path('logs/laravel.log');
+
+    if (! file_exists($path)) {
+        return 'No existe el archivo de log.';
+    }
+
+    $contenido = file_get_contents($path);
+    $pos = strrpos($contenido, 'production.ERROR');
+
+    if ($pos === false) {
+        $pos = max(0, strlen($contenido) - 4000);
+    }
+
+    return '<pre>' . e(substr($contenido, $pos, 4000)) . '</pre>';
+});
