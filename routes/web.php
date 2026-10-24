@@ -368,13 +368,21 @@ Route::middleware(['auth'])->group(function () {
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
                 'categoria' => ['nullable', 'string', 'max:100'],
-                'imagen_url' => ['nullable', 'url', 'max:500'],
+                                'imagen_url' => ['nullable', 'url', 'starts_with:https://', 'max:500', 'prohibits:imagen_archivo,eliminar_imagen'],
+                'imagen_archivo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'prohibits:imagen_url,eliminar_imagen'],
+                'eliminar_imagen' => ['nullable', 'boolean', 'prohibits:imagen_archivo,imagen_url'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
                 'stock_minimo' => ['required', 'integer', 'min:0'],
             ]);
 
+                        if ($request->hasFile('imagen_archivo')) {
+                $rutaImagen = $request->file('imagen_archivo')->store('productos', 'public');
+                $data['imagen_url'] = Storage::disk('public')->url($rutaImagen);
+            }
+
+            unset($data['imagen_archivo'], $data['eliminar_imagen']);
             $data['activo'] = true;
 
             Producto::create($data);
@@ -392,16 +400,50 @@ Route::middleware(['auth'])->group(function () {
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
                 'categoria' => ['nullable', 'string', 'max:100'],
-                'imagen_url' => ['nullable', 'url', 'max:500'],
+                                'imagen_url' => ['nullable', 'url', 'starts_with:https://', 'max:500', 'prohibits:imagen_archivo,eliminar_imagen'],
+                'imagen_archivo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'prohibits:imagen_url,eliminar_imagen'],
+                'eliminar_imagen' => ['nullable', 'boolean', 'prohibits:imagen_archivo,imagen_url'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
                 'stock_minimo' => ['required', 'integer', 'min:0'],
             ]);
 
-            $producto->update($data);
+                        $imagenAnterior = $producto->imagen_url;
+            $nuevaImagen = null;
 
-            return redirect('/productos')->with('status', 'Producto actualizado correctamente.');
+            if ($request->boolean('eliminar_imagen')) {
+                $data['imagen_url'] = null;
+            } elseif ($request->hasFile('imagen_archivo')) {
+                $nuevaImagen = $request->file('imagen_archivo')->store('productos', 'public');
+                $data['imagen_url'] = Storage::disk('public')->url($nuevaImagen);
+            } elseif (!$request->filled('imagen_url')) {
+                unset($data['imagen_url']);
+            }
+
+            unset($data['imagen_archivo'], $data['eliminar_imagen']);
+
+            try {
+                $producto->update($data);
+            } catch (\Throwable $e) {
+                if ($nuevaImagen) {
+                    Storage::disk('public')->delete($nuevaImagen);
+                }
+                throw $e;
+            }
+
+            if (
+                $imagenAnterior &&
+                $imagenAnterior !== $producto->imagen_url &&
+                str_starts_with($imagenAnterior, '/storage/productos/')
+            ) {
+                $rutaAnterior = substr($imagenAnterior, strlen('/storage/'));
+
+                if (!Producto::where('id', '!=', $producto->id)
+                    ->where('imagen_url', $imagenAnterior)->exists()) {
+                    Storage::disk('public')->delete($rutaAnterior);
+                }
+            }return redirect('/productos')->with('status', 'Producto actualizado correctamente.');
         });
     });
 

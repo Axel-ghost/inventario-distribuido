@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -70,6 +70,10 @@
     <button type="submit" class="login-button">
         INICIAR SESION
     </button>
+
+    <a href="{{ route('tienda.index') }}" class="catalog-back-button">
+        &larr; VOLVER AL CATÁLOGO
+    </a>
 
     <p style="margin-top: 16px; text-align: center; color: var(--muted); font-size: 13px;">
     ¿Eres cliente nuevo? <a href="/tienda/registro" style="color: var(--accent);">Crea tu cuenta aquí</a>
