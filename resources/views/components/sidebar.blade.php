@@ -33,7 +33,7 @@
 
         @if (in_array($rol, ['administrador', 'almacen']))
             <a href="/pedidos" class="nav-item {{ $activePage === 'pedidos' ? 'active' : '' }}">
-                <span>📋</span>
+                <span>▱</span>
                 Pedidos
                 @if ($rol === 'administrador')
                     @php

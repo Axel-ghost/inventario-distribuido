@@ -18,8 +18,18 @@ Route::get('/', function () {
     }
 
     return view('login');
+})->name('inicio'); // Nota: le cambié el nombre a 'inicio' para no chocar con la ruta /login
+
+// 1. Ruta para MOSTRAR el formulario (GET)
+Route::get('/login', function () {
+    if (Auth::check()) {
+        $destinoDefault = Auth::user()->rol === 'cliente' ? '/tienda' : '/dashboard';
+        return redirect($destinoDefault);
+    }
+    return view('login');
 })->name('login');
 
+// 2. Ruta para PROCESAR el formulario (POST)
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'usuario' => ['required', 'string'],
@@ -29,7 +39,8 @@ Route::post('/login', function (Request $request) {
     if (Auth::attempt(['usuario' => $credentials['usuario'], 'password' => $credentials['password']])) {
         $request->session()->regenerate();
 
-        if (! Auth::user()->activo) {
+        // ✅ CORREGIDO AQUÍ: Ahora usa 'activo' que es el nombre real de tu columna
+        if (! Auth::user()->activo) { 
             Auth::logout();
             return back()->withErrors(['usuario' => 'Tu cuenta está desactivada.']);
         }
@@ -42,6 +53,7 @@ Route::post('/login', function (Request $request) {
     return back()->withErrors(['usuario' => 'Usuario o contraseña incorrectos.']);
 })->name('login.attempt');
 
+// 3. Tu ruta de logout
 Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
@@ -182,12 +194,43 @@ Route::middleware(['auth'])->group(function () {
             ->limit(3)
             ->get();
 
+        // --- OPERACIONES RECIENTES ---
+        
+        // 1. Obtener últimas 5 ventas
+        $ventas = Venta::orderByDesc('fecha_venta')->take(5)->get()->map(function ($venta) {
+            return [
+                'tipo' => 'venta',
+                'titulo' => 'Venta registrada (Folio: ' . $venta->folio . ')',
+                'detalle' => 'Total: $' . number_format($venta->total, 2),
+                'fecha' => $venta->fecha_venta ? $venta->fecha_venta->diffForHumans() : 'Fecha desconocida',
+                'timestamp' => $venta->fecha_venta ? $venta->fecha_venta->timestamp : 0,
+            ];
+        });
+
+        // 2. Obtener últimos 5 pedidos
+        $pedidos = Pedido::with('solicitante')->orderByDesc('fecha_solicitud')->take(5)->get()->map(function ($pedido) {
+            return [
+                'tipo' => 'pedido',
+                'titulo' => 'Pedido ' . ucfirst(str_replace('_', ' ', $pedido->estado)) . ' (Folio: ' . $pedido->folio . ')',
+                'detalle' => 'Solicitado por: ' . ($pedido->solicitante ? $pedido->solicitante->name : 'Desconocido'),
+                'fecha' => $pedido->fecha_solicitud ? $pedido->fecha_solicitud->diffForHumans() : 'Fecha desconocida',
+                'timestamp' => $pedido->fecha_solicitud ? $pedido->fecha_solicitud->timestamp : 0,
+            ];
+        });
+
+        // 3. Unir, ordenar por fecha real y tomar los 5 más recientes
+        $operacionesRecientes = $ventas->concat($pedidos)
+            ->sortByDesc('timestamp')
+            ->take(5)
+            ->values();
+
         return view('dashboard', compact(
             'totalProductos',
             'stockBajo',
             'ventasDelMes',
             'pedidosPendientes',
-            'productosStockBajo'
+            'productosStockBajo',
+            'operacionesRecientes'
         ));
     });
 
@@ -493,8 +536,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Registrar ventas: solo administrador y vendedor
-    // (debe ir ANTES del grupo de "Consultar ventas" para que /ventas/crear
-    // no sea interceptada por la ruta comodín /ventas/{venta})
     Route::middleware('rol:administrador,vendedor')->group(function () {
 
         Route::get('/ventas/crear', function () {
@@ -652,6 +693,7 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 });
+
 
 Route::get('/debug-log-9f21', function () {
     $path = storage_path('logs/laravel.log');
