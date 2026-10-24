@@ -195,7 +195,7 @@ Route::middleware(['auth'])->group(function () {
             ->get();
 
         // --- OPERACIONES RECIENTES ---
-        
+
         // 1. Obtener últimas 5 ventas
         $ventas = Venta::orderByDesc('fecha_venta')->take(5)->get()->map(function ($venta) {
             return [
@@ -703,7 +703,7 @@ Route::get('/debug-log-9f21', function () {
     }
 
     $contenido = file_get_contents($path);
-    $pos = strrpos($contenido, 'production.ERROR');
+    $pos = strrpos($contenido, '.ERROR:');
 
     if ($pos === false) {
         $pos = max(0, strlen($contenido) - 4000);
