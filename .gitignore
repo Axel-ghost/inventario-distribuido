@@ -25,3 +25,9 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Respaldos locales de CoreBuild
+*.bak
+*.bak_*
+respaldos_imagenes_*/
+
