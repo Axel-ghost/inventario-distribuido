@@ -16,6 +16,16 @@
 
         <h2 style="margin-bottom: 20px;">Confirmar compra</h2>
 
+        {{-- CARTEL DE ERRORES (Stock insuficiente, etc.) --}}
+        @if ($errors->any())
+            <div class="alert alert-error" style="background:#3a1414; border:1px solid #7a2626; color:#ff8080; padding:12px 16px; border-radius:8px; margin-bottom:16px;">
+                <strong style="display: block; margin-bottom: 5px;">¡No se pudo realizar la compra!</strong>
+                @foreach ($errors->all() as $error)
+                    <p style="margin:0;">{{ $error }}</p>
+                @endforeach
+            </div>
+        @endif
+
         <table class="data-table">
             <thead>
                 <tr>
@@ -41,8 +51,9 @@
                 <strong>${{ number_format($total, 2) }}</strong>
             </div>
 
-            <form method="POST" action="/tienda/checkout">
+            <form method="POST" action="/tienda/checkout" id="formCheckout">
                 @csrf
+                {{-- El componente del botón --}}
                 <x-order-button id="btnConfirmarCompra" label="Confirmar compra" />
             </form>
         </div>
@@ -50,12 +61,18 @@
     </main>
 
     <script>
-        document.getElementById('btnConfirmarCompra').addEventListener('click', function () {
+        document.getElementById('btnConfirmarCompra').addEventListener('click', function (e) {
+            e.preventDefault();
+
             const boton = this;
+            const formulario = document.getElementById('formCheckout');
+
+            boton.disabled = true;
+
             playOrderAnimation(boton, {
                 duration: 2000,
                 onComplete: function () {
-                    boton.closest('form').submit();
+                    formulario.submit();
                 }
             });
         });
