@@ -49,7 +49,13 @@
 
                 <div class="input-group">
                     <label for="categoria">Categoría</label>
-                    <input type="text" id="categoria" name="categoria" value="{{ old('categoria', $producto->categoria) }}">
+                    <input type="text" id="categoria" name="categoria" value="{{ old('categoria', $producto->categoria) }}" placeholder="Ej. Tarjetas gráficas">
+                </div>
+
+                {{-- NUEVO CAMPO: PROVEEDOR --}}
+                <div class="input-group">
+                    <label for="proveedor">Proveedor</label>
+                    <input type="text" id="proveedor" name="proveedor" value="{{ old('proveedor', $producto->proveedor) }}" placeholder="Ej. TechSupply">
                 </div>
 
                 <div class="input-group">
@@ -78,66 +84,65 @@
                 </div>
 
                 <div class="input-group">
-    <label>Imagen actual</label>
-    @if ($producto->imagen_url)
-        <img src="{{ $producto->imagen_url }}"
-             alt="Imagen actual"
-             style="display:block;max-width:220px;max-height:180px;object-fit:contain;border-radius:12px;margin:10px 0">
-    @else
-        <p>Este producto no tiene fotografía.</p>
-    @endif
-</div>
+                    <label>Imagen actual</label>
+                    @if ($producto->imagen_url)
+                        <img src="{{ $producto->imagen_url }}"
+                             alt="Imagen actual"
+                             style="display:block;max-width:220px;max-height:180px;object-fit:contain;border-radius:12px;margin:10px 0">
+                    @else
+                        <p>Este producto no tiene fotografía.</p>
+                    @endif
+                </div>
 
-<div class="input-group">
-    <label>
-        <input type="checkbox" id="eliminar_imagen" name="eliminar_imagen" value="1">
-        Eliminar fotografía actual
-    </label>
-</div>
-<div class="input-group" style="margin-top:20px">
-    <label for="imagen_archivo">Fotografía desde mi equipo</label>
-    <input type="file"
-           id="imagen_archivo"
-           name="imagen_archivo"
-           accept="image/jpeg,image/png,image/webp">
-    <small>JPG, PNG o WEBP. Máximo 2 MB.</small>
-</div>
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="eliminar_imagen" name="eliminar_imagen" value="1">
+                        Eliminar fotografía actual
+                    </label>
+                </div>
 
-<div class="input-group">
-    <label for="imagen_url">O utilizar una imagen de Internet</label>
-    <input type="url"
-           id="imagen_url"
-           name="imagen_url"
-           placeholder="https://ejemplo.com/imagen.jpg"
-           value="{{ old('imagen_url') }}">
-</div>
+                <div class="input-group" style="margin-top:20px">
+                    <label for="imagen_archivo">Fotografía desde mi equipo</label>
+                    <input type="file"
+                           id="imagen_archivo"
+                           name="imagen_archivo"
+                           accept="image/jpeg,image/png,image/webp">
+                    <small>JPG, PNG o WEBP. Máximo 2 MB.</small>
+                </div>
 
-<div class="input-group">
-    <label>Vista previa</label>
-    <img id="vista_previa"
-         alt="Vista previa del producto"
-         style="display:none;max-width:220px;max-height:180px;object-fit:contain;border-radius:12px;margin-top:10px">
-</div>
+                <div class="input-group">
+                    <label for="imagen_url">O utilizar una imagen de Internet</label>
+                    <input type="url"
+                           id="imagen_url"
+                           name="imagen_url"
+                           placeholder="https://ejemplo.com/imagen.jpg"
+                           value="{{ old('imagen_url') }}">
+                </div>
 
+                <div class="input-group">
+                    <label>Vista previa</label>
+                    <img id="vista_previa"
+                         alt="Vista previa del producto"
+                         style="display:none;max-width:220px;max-height:180px;object-fit:contain;border-radius:12px;margin-top:10px">
+                </div>
 
-            
-    <button type="submit"
-            class="btn-process"
-            style="display:block;
-                   width:100%;
-                   padding:18px;
-                   margin-top:24px;
-                   background:#60d5f8;
-                   color:#10151c;
-                   border:none;
-                   border-radius:12px;
-                   font-size:16px;
-                   font-weight:bold;
-                   cursor:pointer;">
-        Guardar cambios
-    </button>
+                <button type="submit"
+                        class="btn-process"
+                        style="display:block;
+                               width:100%;
+                               padding:18px;
+                               margin-top:24px;
+                               background:#60d5f8;
+                               color:#10151c;
+                               border:none;
+                               border-radius:12px;
+                               font-size:16px;
+                               font-weight:bold;
+                               cursor:pointer;">
+                    Guardar cambios
+                </button>
 
-</form>
+            </form>
 
         </main>
 

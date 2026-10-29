@@ -371,12 +371,26 @@ Route::middleware(['auth'])->group(function () {
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
                 'categoria' => ['nullable', 'string', 'max:100'],
+                'proveedor' => ['nullable', 'string', 'max:255'],
                 'imagen_url' => ['nullable', 'url', 'max:500'],
+                'imagen_archivo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
                 'stock_minimo' => ['required', 'integer', 'min:0'],
             ]);
+
+            if (!empty($data['categoria'])) {
+                \App\Models\Categoria::firstOrCreate(['nombre' => trim($data['categoria'])]);
+            }
+            if (!empty($data['proveedor'])) {
+                \App\Models\Proveedor::firstOrCreate(['nombre' => trim($data['proveedor'])]);
+            }
+
+            if ($request->hasFile('imagen_archivo')) {
+                $ruta = $request->file('imagen_archivo')->store('productos', 'public');
+                $data['imagen_url'] = asset('storage/' . $ruta);
+            }
 
             $data['activo'] = true;
 
@@ -395,12 +409,31 @@ Route::middleware(['auth'])->group(function () {
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
                 'categoria' => ['nullable', 'string', 'max:100'],
+                'proveedor' => ['nullable', 'string', 'max:255'],
                 'imagen_url' => ['nullable', 'url', 'max:500'],
+                'imagen_archivo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
+                'eliminar_imagen' => ['nullable', 'boolean'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
                 'stock_minimo' => ['required', 'integer', 'min:0'],
             ]);
+
+            if (!empty($data['categoria'])) {
+                \App\Models\Categoria::firstOrCreate(['nombre' => trim($data['categoria'])]);
+            }
+            if (!empty($data['proveedor'])) {
+                \App\Models\Proveedor::firstOrCreate(['nombre' => trim($data['proveedor'])]);
+            }
+
+            if ($request->has('eliminar_imagen') && $request->eliminar_imagen == 1) {
+                $data['imagen_url'] = null;
+            }
+
+            if ($request->hasFile('imagen_archivo')) {
+                $ruta = $request->file('imagen_archivo')->store('productos', 'public');
+                $data['imagen_url'] = asset('storage/' . $ruta);
+            }
 
             $producto->update($data);
 

@@ -51,6 +51,7 @@
                         <th>Código</th>
                         <th>Nombre</th>
                         <th>Categoría</th>
+                        <th>Proveedor</th>
                         <th>Precio</th>
                         <th>Existencia</th>
                         <th>Estado</th>
@@ -88,6 +89,8 @@
                             <td>{{ $producto->nombre }}</td>
 
                             <td>{{ $producto->categoria ?? 'Sin categoría' }}</td>
+
+                            <td>{{ $producto->proveedor ?? 'Sin proveedor' }}</td>
 
                             <td>
                                 ${{ number_format($producto->precio_venta, 2) }}
@@ -159,7 +162,7 @@
                     @empty
 
                         <tr>
-                            <td colspan="8" style="text-align:center;padding:30px;">
+                            <td colspan="9" style="text-align:center;padding:30px;">
                                 No hay productos registrados.
                             </td>
                         </tr>
