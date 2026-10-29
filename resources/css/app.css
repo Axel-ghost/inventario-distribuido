@@ -1443,3 +1443,164 @@ input:-webkit-autofill:focus {
 .timeline-step.rechazado {
     color: #ef4444;
 }
+
+/* Botón para regresar al catálogo */
+.catalog-back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 14px;
+    padding: 15px 20px;
+    border: 2px solid #60d5f8;
+    border-radius: 12px;
+    background: transparent;
+    color: #60d5f8;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.catalog-back-button:hover {
+    background: #60d5f8;
+    color: #10151c;
+    transform: translateY(-2px);
+}
+
+.catalog-back-button:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 3px;
+}
+
+
+/* ==========================================
+   COREBUILD - AJUSTE RESPONSIVE DASHBOARD
+   ========================================== */
+
+@media (min-width: 769px) {
+
+    .dashboard {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: clip;
+    }
+
+    .dashboard-content {
+        box-sizing: border-box;
+        margin-left: 250px;
+        width: calc(100% - 250px);
+        max-width: calc(100% - 250px);
+        min-width: 0;
+    }
+
+    .dashboard-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        min-width: 0;
+    }
+
+    .dashboard-header > * {
+        min-width: 0;
+    }
+
+    .data-table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    .dashboard {
+        width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+    }
+
+    .dashboard-content {
+        box-sizing: border-box;
+        margin-left: 0;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 20px;
+    }
+
+    .dashboard-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .data-table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+}
+
+
+/* ==========================================
+   COREBUILD - DISENO PARA MOVILES
+   ========================================== */
+
+@media screen and (max-width: 768px) {
+
+    html,
+    body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .dashboard {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .dashboard-content {
+        margin-left: 0;
+        width: 100%;
+        max-width: 100%;
+        padding: 20px 15px;
+        box-sizing: border-box;
+    }
+
+    .dashboard-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 26px;
+    }
+
+    .btn-process {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    input,
+    select,
+    textarea {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+}
+

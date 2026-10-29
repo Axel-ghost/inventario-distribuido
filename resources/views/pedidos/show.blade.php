@@ -128,7 +128,25 @@
 
             </div>
 
-        </main>
+                <div style="margin-top: 28px; margin-bottom: 15px;">
+            <a href="/pedidos"
+               style="
+                   display: inline-flex;
+                   align-items: center;
+                   justify-content: center;
+                   padding: 12px 20px;
+                   border: 1px solid #60d5f8;
+                   border-radius: 10px;
+                   color: #60d5f8;
+                   background: transparent;
+                   text-decoration: none;
+                   font-weight: 600;
+                   transition: 0.3s;
+               ">
+                &larr; Volver a pedidos
+            </a>
+        </div>
+</main>
 
     </div>
 

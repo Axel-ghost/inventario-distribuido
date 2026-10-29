@@ -33,7 +33,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="/productos/{{ $producto->id }}" class="form-card">
+            <form method="POST" enctype="multipart/form-data" action="/productos/{{ $producto->id }}" class="form-card">
                 @csrf
                 @method('PUT')
 
@@ -77,16 +77,135 @@
                     <input type="number" min="0" id="stock_minimo" name="stock_minimo" value="{{ old('stock_minimo', $producto->stock_minimo) }}" required>
                 </div>
 
-                <button type="submit" class="btn-process">
-                    <span class="btn-label">Guardar cambios</span>
-                </button>
+                <div class="input-group">
+    <label>Imagen actual</label>
+    @if ($producto->imagen_url)
+        <img src="{{ $producto->imagen_url }}"
+             alt="Imagen actual"
+             style="display:block;max-width:220px;max-height:180px;object-fit:contain;border-radius:12px;margin:10px 0">
+    @else
+        <p>Este producto no tiene fotografía.</p>
+    @endif
+</div>
 
-            </form>
+<div class="input-group">
+    <label>
+        <input type="checkbox" id="eliminar_imagen" name="eliminar_imagen" value="1">
+        Eliminar fotografía actual
+    </label>
+</div>
+<div class="input-group" style="margin-top:20px">
+    <label for="imagen_archivo">Fotografía desde mi equipo</label>
+    <input type="file"
+           id="imagen_archivo"
+           name="imagen_archivo"
+           accept="image/jpeg,image/png,image/webp">
+    <small>JPG, PNG o WEBP. Máximo 2 MB.</small>
+</div>
+
+<div class="input-group">
+    <label for="imagen_url">O utilizar una imagen de Internet</label>
+    <input type="url"
+           id="imagen_url"
+           name="imagen_url"
+           placeholder="https://ejemplo.com/imagen.jpg"
+           value="{{ old('imagen_url') }}">
+</div>
+
+<div class="input-group">
+    <label>Vista previa</label>
+    <img id="vista_previa"
+         alt="Vista previa del producto"
+         style="display:none;max-width:220px;max-height:180px;object-fit:contain;border-radius:12px;margin-top:10px">
+</div>
+
+
+            
+    <button type="submit"
+            class="btn-process"
+            style="display:block;
+                   width:100%;
+                   padding:18px;
+                   margin-top:24px;
+                   background:#60d5f8;
+                   color:#10151c;
+                   border:none;
+                   border-radius:12px;
+                   font-size:16px;
+                   font-weight:bold;
+                   cursor:pointer;">
+        Guardar cambios
+    </button>
+
+</form>
 
         </main>
 
     </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const archivo = document.getElementById('imagen_archivo');
+    const url = document.getElementById('imagen_url');
+    const previa = document.getElementById('vista_previa');
+    const eliminar = document.getElementById('eliminar_imagen');
+
+    function mostrar(src) {
+        if (!src) {
+            previa.removeAttribute('src');
+            previa.style.display = 'none';
+            return;
+        }
+        previa.src = src;
+        previa.style.display = 'block';
+    }
+
+    archivo.addEventListener('change', () => {
+        const foto = archivo.files[0];
+        if (!foto) return;
+
+        if (!['image/jpeg','image/png','image/webp'].includes(foto.type) ||
+            foto.size > 2 * 1024 * 1024) {
+            alert('Selecciona una imagen JPG, PNG o WEBP de máximo 2 MB.');
+            archivo.value = '';
+            return;
+        }
+
+        url.value = '';
+        if (eliminar) eliminar.checked = false;
+
+        const lector = new FileReader();
+        lector.onload = e => mostrar(e.target.result);
+        lector.readAsDataURL(foto);
+    });
+
+    url.addEventListener('input', () => {
+        if (url.value.trim()) {
+            archivo.value = '';
+            if (eliminar) eliminar.checked = false;
+            mostrar(url.value.trim());
+        } else {
+            mostrar('');
+        }
+    });
+
+    if (eliminar) {
+        eliminar.addEventListener('change', () => {
+            if (eliminar.checked) {
+                archivo.value = '';
+                url.value = '';
+                mostrar('');
+            } else {
+                mostrar(previa.dataset.original || '');
+            }
+        });
+    }
+
+    previa.addEventListener('error', () => {
+        previa.style.display = 'none';
+    });
+});
+</script>
 </body>
 
 </html>

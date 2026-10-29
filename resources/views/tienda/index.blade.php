@@ -30,7 +30,7 @@
                 <div class="producto-card">
 
                     <div class="producto-card-imagen">
-                        <img src="{{ $producto->imagen_url ?? 'https://picsum.photos/seed/' . $producto->id . '/400/300' }}" alt="{{ $producto->nombre }}">
+                        <img src="{{ $producto->imagen_url ?: 'https://picsum.photos/seed/' . $producto->id . '/400/300' }}" alt="{{ $producto->nombre }}">
                     </div>
 
                     <div class="producto-card-body">

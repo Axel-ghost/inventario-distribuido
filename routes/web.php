@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -277,7 +278,7 @@ Route::middleware(['auth'])->group(function () {
                 $total = 0;
                 $itemsConfirmados = [];
                 $venta = Venta::create([
-                    'folio' => 'VEN-' . now()->format('YmdHis'),
+                    'folio' => 'VEN-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4)),
                     'usuario_id' => Auth::id(),
                     'total' => 0,
                     'fecha_venta' => now(),
@@ -310,6 +311,8 @@ Route::middleware(['auth'])->group(function () {
 
                 return ['venta' => $venta, 'total' => $total, 'items' => $itemsConfirmados];
             });
+        } catch (\Illuminate\Database\QueryException $e) {
+            return back()->withErrors(['checkout' => 'Tu compra está en proceso o alguien se te adelantó por segundos. Por favor, intenta confirmar de nuevo.']);
         } catch (\Exception $e) {
             return back()->withErrors(['checkout' => $e->getMessage()]);
         }
@@ -552,7 +555,7 @@ Route::middleware(['auth'])->group(function () {
             try {
                 $venta = DB::transaction(function () use ($data) {
                     $venta = Venta::create([
-                        'folio' => 'VEN-' . now()->format('YmdHis'),
+                        'folio' => 'VEN-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4)),
                         'usuario_id' => Auth::id(),
                         'total' => 0,
                         'fecha_venta' => now(),
@@ -586,6 +589,8 @@ Route::middleware(['auth'])->group(function () {
 
                     return $venta;
                 });
+            } catch (\Illuminate\Database\QueryException $e) {
+                return back()->withErrors(['venta' => 'La venta está en proceso o hubo un conflicto momentáneo. Intenta registrarla de nuevo.']);
             } catch (\Exception $e) {
                 return back()->withErrors(['venta' => $e->getMessage()]);
             }
