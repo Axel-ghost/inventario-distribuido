@@ -5,26 +5,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoreBuild_{{ $venta->folio }}</title>
-    @vite(['resources/css/app.css'])
+    
+    @vite(['resources/css/app.css', 'resources/css/dark.css', 'resources/js/app.js'])
 
-    <!-- COREBUILD_TICKET_STYLES_V1 -->
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
     <style>
-
-        /* =========================================
-           COMPROBANTE DE VENTA - PANTALLA
-           ========================================= */
-
         .ticket {
             width: 100%;
             max-width: 850px;
             margin: 25px auto;
             padding: 35px;
             box-sizing: border-box;
-
             background: #101923;
             border: 1px solid rgba(96, 213, 248, 0.20);
             border-radius: 16px;
-
             color: #f1f5f9;
         }
 
@@ -50,8 +52,6 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-
-        /* Datos del comprobante */
 
         .ticket-meta {
             display: grid;
@@ -80,8 +80,6 @@
             color: #ffffff;
             overflow-wrap: anywhere;
         }
-
-        /* Tabla de productos */
 
         .ticket-table {
             width: 100%;
@@ -130,17 +128,13 @@
             white-space: nowrap;
         }
 
-        /* Total */
-
         .ticket-total {
             display: flex;
             align-items: center;
             justify-content: flex-end;
             gap: 25px;
-
             margin-top: 25px;
             padding-top: 20px;
-
             border-top: 2px solid rgba(96,213,248,0.35);
         }
 
@@ -156,8 +150,6 @@
             font-size: 26px;
             font-weight: 800;
         }
-
-        /* Botones */
 
         .ticket-actions {
             max-width: 850px;
@@ -177,10 +169,7 @@
             text-decoration: none;
         }
 
-        /* Adaptacion para pantallas pequenas */
-
         @media screen and (max-width: 768px) {
-
             .ticket {
                 padding: 20px;
                 margin: 15px auto;
@@ -205,17 +194,12 @@
             }
         }
 
-        /* =========================================
-           IMPRESION / GUARDAR COMO PDF
-           ========================================= */
-
         @page {
             size: letter;
             margin: 15mm;
         }
 
         @media print {
-
             html,
             body {
                 background: #ffffff !important;
@@ -227,20 +211,14 @@
                 overflow: visible !important;
             }
 
-            /* Ocultar toda la interfaz administrativa */
-
             body * {
                 visibility: hidden !important;
             }
-
-            /* Mostrar unicamente el comprobante */
 
             #ticket,
             #ticket * {
                 visibility: visible !important;
             }
-
-            /* Evitar que el menu lateral afecte la posicion */
 
             .dashboard,
             .dashboard-content {
@@ -262,8 +240,6 @@
                 display: none !important;
             }
 
-            /* Comprobante */
-
             #ticket {
                 display: block !important;
                 position: static !important;
@@ -271,10 +247,8 @@
                 max-width: none !important;
                 margin: 0 !important;
                 padding: 0 !important;
-
                 background: #ffffff !important;
                 color: #000000 !important;
-
                 border: none !important;
                 border-radius: 0 !important;
                 box-shadow: none !important;
@@ -334,8 +308,6 @@
                 font-size: 24px !important;
             }
 
-            /* Evitar cortes innecesarios */
-
             .ticket-header,
             .ticket-meta,
             .ticket-total,
@@ -352,7 +324,6 @@
                 break-inside: avoid;
             }
         }
-
     </style>
 </head>
 

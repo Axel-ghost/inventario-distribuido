@@ -66,4 +66,10 @@
 
     </nav>
 
+    <div class="sidebar-footer" style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: center;">
+        <button id="theme-toggle" class="action-btn" type="button" title="Cambiar tema" style="width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 50%; cursor: pointer; transition: 0.2s;">
+            <span id="theme-icon" style="font-size: 18px;">☁︎</span>
+        </button>
+    </div>
+
 </aside>

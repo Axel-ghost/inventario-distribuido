@@ -5,7 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoreBuild | Ventas</title>
-    @vite(['resources/css/app.css'])
+    
+    @vite(['resources/css/app.css', 'resources/css/dark.css', 'resources/js/app.js'])
+
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 
 <body>
@@ -14,7 +24,7 @@
 
         <x-sidebar active-page="ventas" />
 
-                <main class="dashboard-content">
+        <main class="dashboard-content">
 
             <header class="dashboard-header">
                 <div>
@@ -37,7 +47,6 @@
                 @endif
             </div>
 
-            <!-- Contenedor de la Tabla -->
             <div class="table-container">
                 <table class="data-table-clean">
                     <thead>

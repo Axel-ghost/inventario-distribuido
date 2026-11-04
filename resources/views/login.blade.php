@@ -7,7 +7,18 @@
 
     <title>CoreBuild | Login</title>
 
-    @vite(['resources/css/app.css'])
+    <!-- 1. Agregamos dark.css y app.js -->
+    @vite(['resources/css/app.css', 'resources/css/dark.css', 'resources/js/app.js'])
+
+    <!-- 2. Script anti-flash para evitar parpadeo blanco -->
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 
 <body>
@@ -87,4 +98,12 @@
 
     </section>
 
+    <!-- 3. Botón flotante para el modo oscuro -->
+    <button id="theme-toggle" class="action-btn" type="button" title="Cambiar tema" style="position: absolute; top: 20px; right: 20px; z-index: 100; padding: 10px 15px; background: var(--card);">
+        <span id="theme-icon">☁︎</span>
+    </button>
+
 </main>
+
+</body>
+</html>

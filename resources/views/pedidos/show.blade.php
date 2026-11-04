@@ -4,138 +4,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreBuild | Pedido {{ $pedido->folio }}</title>
-    @vite(['resources/css/app.css'])
+    <title>CoreBuild_{{ $venta->folio }}</title>
+    
+    @vite(['resources/css/app.css', 'resources/css/dark.css', 'resources/js/app.js'])
+
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 
 <body>
 
     <div class="dashboard">
 
-        <x-sidebar active-page="pedidos" />
+        <x-sidebar active-page="ventas" />
 
         <main class="dashboard-content">
 
             <header class="dashboard-header">
                 <div>
-                    <h2>{{ $pedido->folio }}</h2>
-                    <p class="page-subtitle">Solicitado por {{ $pedido->solicitante->name }} {{ $pedido->solicitante->apellidos }}</p>
+                    <h2>{{ $venta->folio }}</h2>
+                    <p>Registrada por {{ $venta->usuario->name }} {{ $venta->usuario->apellidos }}</p>
                 </div>
 
                 <x-profile-card />
             </header>
 
             @if (session('status'))
-                <p style="color: #22c55e; margin-bottom: 24px; font-weight: 500;">{{ session('status') }}</p>
+                <p style="color: #22c55e; margin-bottom: 16px;">{{ session('status') }}</p>
             @endif
 
-            @if ($errors->any())
-                <p style="color: #dc2626; margin-bottom: 24px; font-weight: 500;">{{ $errors->first() }}</p>
-            @endif
+            <div class="ticket" id="ticket">
 
-            <!-- TIMELINE -->
-            @if ($pedido->estado === 'rechazado')
-                <div class="timeline">
-                    <div class="timeline-step completo">
-                        <span class="timeline-dot"></span>
-                        <span>Solicitado</span>
+                <div class="ticket-header">
+                    <h3>CoreBuild Gaming</h3>
+                    <p>Comprobante de venta</p>
+                </div>
+
+                <div class="ticket-meta">
+                    <div>
+                        <span>Folio</span>
+                        <strong>{{ $venta->folio }}</strong>
                     </div>
-                    <div class="timeline-step completo">
-                        <span class="timeline-dot"></span>
-                        <span>En revisión</span>
+                    <div>
+                        <span>Fecha</span>
+                        <strong>{{ $venta->fecha_venta->format('d/m/Y H:i') }}</strong>
                     </div>
-                    <div class="timeline-step rechazado">
-                        <span class="timeline-dot"></span>
-                        <span>Rechazado</span>
+                    <div>
+                        <span>Vendedor</span>
+                        <strong>{{ $venta->usuario->name }} {{ $venta->usuario->apellidos }}</strong>
                     </div>
                 </div>
 
-                <div class="form-card" style="margin-bottom: 24px; max-width: 100%;">
-                    <strong style="color: #dc2626;">Motivo del rechazo:</strong>
-                    <p style="margin-top: 8px; color: var(--muted);">{{ $pedido->comentario_admin }}</p>
-                </div>
-            @else
-                @php
-                    $pasos = ['solicitado', 'en_revision', 'aprobado', 'finalizado'];
-                    $indiceActual = array_search($pedido->estado, $pasos);
-                @endphp
-
-                <div class="timeline">
-                    @foreach ($pasos as $i => $paso)
-                        <div class="timeline-step {{ $i <= $indiceActual ? 'completo' : '' }}">
-                            <span class="timeline-dot"></span>
-                            <span>{{ ucfirst(str_replace('_', ' ', $paso)) }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-
-            <!-- TABLA DE PRODUCTOS -->
-            <div class="table-container">
-                <table class="data-table-clean">
+                <table class="ticket-table">
                     <thead>
                         <tr>
-                            <th>PRODUCTO</th>
-                            <th>CÓDIGO</th>
-                            <th>CANTIDAD SOLICITADA</th>
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th>Precio</th>
+                            <th>Subtotal</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($pedido->detalles as $detalle)
+                        @foreach ($venta->detalles as $detalle)
                             <tr>
-                                <td style="font-weight: 500;">{{ $detalle->producto->nombre }}</td>
-                                <td>{{ $detalle->producto->codigo }}</td>
-                                <td>{{ $detalle->cantidad_solicitada }}</td>
+                                <td>{{ $detalle->producto->nombre }}</td>
+                                <td>{{ $detalle->cantidad }}</td>
+                                <td>${{ number_format($detalle->precio_unitario, 2) }}</td>
+                                <td>${{ number_format($detalle->subtotal, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+
+                <div class="ticket-total">
+                    <span>Total</span>
+                    <strong>${{ number_format($venta->total, 2) }}</strong>
+                </div>
+
             </div>
 
-            <!-- BOTONES DE ACCIÓN -->
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px;">
-                @if (Auth::user()->rol === 'administrador' && $pedido->estado === 'solicitado')
-                    <form method="POST" action="/pedidos/{{ $pedido->id }}/revisar">
-                        @csrf @method('PATCH')
-                        <button type="submit" class="btn-process" style="max-width: 200px; height: 44px; border-radius: 8px;">
-                            <span class="btn-label">Poner en revisión</span>
-                        </button>
-                    </form>
-                @endif
+            <div class="ticket-actions no-print">
+                <button type="button" class="btn-process" onclick="window.print()" style="max-width: 220px;">
+                    <span class="btn-label">Imprimir / Guardar PDF</span>
+                </button>
 
-                @if (Auth::user()->rol === 'administrador' && $pedido->estado === 'en_revision')
-                    <form method="POST" action="/pedidos/{{ $pedido->id }}/aprobar">
-                        @csrf @method('PATCH')
-                        <button type="submit" class="btn-process" style="max-width: 160px; height: 44px; border-radius: 8px;">
-                            <span class="btn-label">Aprobar</span>
-                        </button>
-                    </form>
-
-                    <form method="POST" action="/pedidos/{{ $pedido->id }}/rechazar" style="display: flex; gap: 8px;">
-                        @csrf @method('PATCH')
-                        <input type="text" name="comentario_admin" placeholder="Motivo del rechazo" required
-                               style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 14px; outline: none;">
-                        <button type="submit" class="btn-action" style="border: 1px solid #fecaca; color: #dc2626; background: #fef2f2; padding: 0 16px; border-radius: 8px; font-weight: 600;">
-                            Rechazar
-                        </button>
-                    </form>
-                @endif
-
-                @if (in_array(Auth::user()->rol, ['administrador', 'almacen']) && $pedido->estado === 'aprobado')
-                    <form method="POST" action="/pedidos/{{ $pedido->id }}/finalizar">
-                        @csrf @method('PATCH')
-                        <button type="submit" class="btn-process" style="max-width: 260px; height: 44px; border-radius: 8px;">
-                            <span class="btn-label">Marcar como recibido / Finalizar</span>
-                        </button>
-                    </form>
-                @endif
-            </div>
-
-            <!-- BOTÓN VOLVER -->
-            <div>
-                <a href="/pedidos" class="btn-process" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; max-width: 200px; height: 44px; border-radius: 8px; background: transparent; border: 1px solid #1b2636; color: #1b2636;">
-                    &larr; Volver a pedidos
-                </a>
+                <a href="/ventas" class="venta-quitar" style="margin-left: 16px; text-decoration: none;">Volver al historial</a>
             </div>
 
         </main>

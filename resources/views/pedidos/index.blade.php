@@ -5,7 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoreBuild | Pedidos</title>
-    @vite(['resources/css/app.css'])
+    
+    @vite(['resources/css/app.css', 'resources/css/dark.css', 'resources/js/app.js'])
+
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 
 <body>
@@ -14,7 +24,7 @@
 
         <x-sidebar active-page="pedidos" />
 
-                <main class="dashboard-content">
+        <main class="dashboard-content">
 
             <header class="dashboard-header">
                 <div>
@@ -29,7 +39,6 @@
                 <p style="color: #22c55e; margin-bottom: 16px; font-weight: 500;">{{ session('status') }}</p>
             @endif
 
-            <!-- Botón de Nueva Requisición (Estilo limpio) -->
             <div class="table-actions-top">
                 @if (Auth::user()->rol === 'almacen')
                     <a href="/pedidos/crear" class="btn-process" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; max-width: 200px; height: 44px; border-radius: 8px;">
@@ -38,7 +47,6 @@
                 @endif
             </div>
 
-            <!-- Contenedor de la Tabla -->
             <div class="table-container">
                 <table class="data-table-clean">
                     <thead>
@@ -59,7 +67,6 @@
                                 <td>{{ $pedido->detalles->count() }} producto(s)</td>
                                 <td>
                                     @php
-                                        // Mapeo de colores a las nuevas clases del diseño limpio
                                         $colores = [
                                             'solicitado' => 'status-warning',
                                             'en_revision' => 'status-warning',

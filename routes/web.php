@@ -198,7 +198,7 @@ Route::middleware(['auth'])->group(function () {
         // --- OPERACIONES RECIENTES ---
 
         // 1. Obtener últimas 5 ventas
-        $ventas = Venta::orderByDesc('fecha_venta')->take(5)->get()->map(function ($venta) {
+        $ventas = Venta::orderByDesc('fecha_venta')->take(3)->get()->map(function ($venta) {
             return [
                 'tipo' => 'venta',
                 'titulo' => 'Venta registrada (Folio: ' . $venta->folio . ')',
@@ -209,7 +209,7 @@ Route::middleware(['auth'])->group(function () {
         });
 
         // 2. Obtener últimos 5 pedidos
-        $pedidos = Pedido::with('solicitante')->orderByDesc('fecha_solicitud')->take(5)->get()->map(function ($pedido) {
+        $pedidos = Pedido::with('solicitante')->orderByDesc('fecha_solicitud')->take(3)->get()->map(function ($pedido) {
             return [
                 'tipo' => 'pedido',
                 'titulo' => 'Pedido ' . ucfirst(str_replace('_', ' ', $pedido->estado)) . ' (Folio: ' . $pedido->folio . ')',
@@ -222,7 +222,7 @@ Route::middleware(['auth'])->group(function () {
         // 3. Unir, ordenar por fecha real y tomar los 5 más recientes
         $operacionesRecientes = $ventas->concat($pedidos)
             ->sortByDesc('timestamp')
-            ->take(5)
+            ->take(3)
             ->values();
 
         return view('dashboard', compact(
