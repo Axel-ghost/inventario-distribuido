@@ -28,24 +28,26 @@
             <div class="venta-layout">
 
                 <div class="venta-buscador">
-                    <input type="text" id="buscarProducto" placeholder="Busca por nombre o código..." autocomplete="off">
+                    <input type="text" id="buscarProducto" placeholder="🔎︎ Busca por nombre o código..." autocomplete="off">
                     <div id="sugerencias" class="venta-sugerencias"></div>
                 </div>
 
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Cantidad solicitada</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="carritoBody">
-                        <tr id="carritoVacio">
-                            <td colspan="3" style="text-align: center; color: var(--muted);">Aún no has agregado productos</td>
-                        </tr>
-                    </tbody>
-                </table>
+                                <div class="table-container">
+                    <table class="data-table-clean">
+                        <thead>
+                            <tr>
+                                <th>PRODUCTO</th>
+                                <th>CANTIDAD SOLICITADA</th>
+                                <th style="width: 100px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="carritoBody">
+                            <tr id="carritoVacio">
+                                <td colspan="3" style="text-align: center; padding: 30px; color: var(--muted);">Aún no has agregado productos</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
                 <form id="formPedido" method="POST" action="/pedidos">
                     @csrf

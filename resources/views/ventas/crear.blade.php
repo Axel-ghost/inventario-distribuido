@@ -36,22 +36,24 @@
                     <div id="sugerencias" class="venta-sugerencias"></div>
                 </div>
 
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Precio</th>
-                            <th>Cantidad</th>
-                            <th>Subtotal</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="carritoBody">
-                        <tr id="carritoVacio">
-                            <td colspan="5" style="text-align: center; color: var(--muted);">Aún no has agregado productos</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table class="data-table-clean">
+                        <thead>
+                            <tr>
+                                <th>PRODUCTO</th>
+                                <th>PRECIO</th>
+                                <th>CANTIDAD</th>
+                                <th>SUBTOTAL</th>
+                                <th style="width: 100px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="carritoBody">
+                            <tr id="carritoVacio">
+                                <td colspan="5" style="text-align: center; padding: 30px; color: var(--muted);">Aún no has agregado productos</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
                 <form id="formVenta" method="POST" action="/ventas">
                     @csrf

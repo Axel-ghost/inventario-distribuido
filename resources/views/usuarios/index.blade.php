@@ -14,73 +14,81 @@
 
         <x-sidebar active-page="usuarios" />
 
-        <main class="dashboard-content">
+                <main class="dashboard-content">
 
             <header class="dashboard-header">
                 <div>
                     <h2>Usuarios</h2>
-                    <p>Administración de usuarios y roles</p>
+                    <p class="page-subtitle">Administración de usuarios y roles</p>
                 </div>
 
                 <x-profile-card />
             </header>
 
             @if (session('status'))
-                <p style="color: #22c55e; margin-bottom: 16px;">{{ session('status') }}</p>
+                <p style="color: #22c55e; margin-bottom: 16px; font-weight: 500;">{{ session('status') }}</p>
             @endif
 
             @if ($errors->any())
-                <p style="color: #ef4444; margin-bottom: 16px;">{{ $errors->first() }}</p>
+                <p style="color: #dc2626; margin-bottom: 16px; font-weight: 500;">{{ $errors->first() }}</p>
             @endif
 
-            <a href="/usuarios/crear" class="btn-process" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; max-width: 200px; margin-bottom: 20px;">
-                <span class="btn-label">+ Nuevo usuario</span>
-            </a>
+            <!-- Botón conservando su tamaño y clase original -->
+            <div class="table-actions-top">
+                <a href="/usuarios/crear" class="btn-process" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; max-width: 200px; height: 44px; border-radius: 8px;">
+                    <span class="btn-label">+ Nuevo usuario</span>
+                </a>
+            </div>
 
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Usuario</th>
-                        <th>Correo</th>
-                        <th>Rol</th>
-                        <th>Estado</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($usuarios as $u)
+            <!-- Contenedor de la Tabla -->
+            <div class="table-container">
+                <table class="data-table-clean">
+                    <thead>
                         <tr>
-                            <td>{{ $u->name }} {{ $u->apellidos }}</td>
-                            <td>{{ $u->usuario }}</td>
-                            <td>{{ $u->email }}</td>
-                            <td>{{ ucfirst($u->rol) }}</td>
-                            <td>
-                                @if ($u->activo)
-                                    <span class="badge badge-ok">Activo</span>
-                                @else
-                                    <span class="badge badge-danger">Inactivo</span>
-                                @endif
-                            </td>
-                            <td>
-                                <a href="/usuarios/{{ $u->id }}/editar" class="venta-quitar" style="color: var(--accent); text-decoration: none; margin-right: 12px;">\
-                                    Editar
-                                </a>
+                            <th>NOMBRE</th>
+                            <th>USUARIO</th>
+                            <th>CORREO</th>
+                            <th>ROL</th>
+                            <th>ESTADO</th>
+                            <th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($usuarios as $u)
+                            <tr>
+                                <td>{{ $u->name }} {{ $u->apellidos }}</td>
+                                <td>{{ $u->usuario }}</td>
+                                <td>{{ $u->email }}</td>
+                                <td>{{ ucfirst($u->rol) }}</td>
+                                <td>
+                                    @if ($u->activo)
+                                        <span class="status-badge status-success">Activo</span>
+                                    @else
+                                        <span class="status-badge status-danger">Inactivo</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="actions-wrapper">
+                                        <a href="/usuarios/{{ $u->id }}/editar" class="btn-action btn-link">
+                                            Editar
+                                        </a>
 
-                            @if ($u->id !== Auth::id())
-                            <form method="POST" action="/usuarios/{{ $u->id }}/estado" style="display: inline;">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="venta-quitar" style="color: var(--accent);">
-                                {{ $u->activo ? 'Desactivar' : 'Activar' }}
-                            </button>
-                        </form>
-                    @endif
-                    </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                                        @if ($u->id !== Auth::id())
+                                            <form method="POST" action="/usuarios/{{ $u->id }}/estado" style="margin: 0; display: flex;">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn-action btn-link">
+                                                    {{ $u->activo ? 'Desactivar' : 'Activar' }}
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
         </main>
 
