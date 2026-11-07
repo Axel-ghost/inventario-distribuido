@@ -1,57 +1,154 @@
 /* resources/css/dark.css */
 :root[data-theme="dark"] {
-    --background: #0f172a;
-    --bg-darker: #1e293b;
-    --card: #1e293b;
-    --border: #334155;
+    --background: transparent; 
+    --bg-darker: rgba(15, 23, 42, 0.85); /* Azul oscuro para el sidebar */
+    --card: rgba(30, 30, 35, 0.5); 
+    --border: rgba(255, 255, 255, 0.15);
     --text: #f1f5f9;
     --muted: #94a3b8;
     --accent: #60a5fa;
     --accent-secondary: #a78bfa;
     --accent-bg: #1e3a8a;
     --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    color-scheme: dark; /* Ayuda a que scrollbars e inputs nativos se pongan oscuros */
+    color-scheme: dark;
 }
 
-/* --- Correcciones de colores "hardcoded" en tu app.css --- */
+/* --- HACER TRANSPARENTE EL DASHBOARD --- */
+:root[data-theme="dark"] .dashboard,
+:root[data-theme="dark"] .dashboard-content {
+    background: transparent !important;
+}
 
-/* Autofill en inputs (evita que se pongan blancos al escribir) */
+/* --- SIDEBAR (Recupera el azul) --- */
+:root[data-theme="dark"] .sidebar {
+    background: rgba(15, 23, 42, 0.85) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* --- TARJETAS ULTRA TRANSPARENTES --- */
+:root[data-theme="dark"] .stat-card,
+:root[data-theme="dark"] .welcome-section,
+:root[data-theme="dark"] .panel {
+    background: rgba(200, 210, 220, 0.08) !important; /* Solo un 8% de opacidad */
+    backdrop-filter: blur(16px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Tarjeta de Perfil */
+:root[data-theme="dark"] .user-profile {
+    background: rgba(200, 210, 220, 0.12) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* --- TABLAS ULTRA TRANSPARENTES --- */
+:root[data-theme="dark"] .table-container {
+    background: rgba(200, 210, 220, 0.08) !important;
+    backdrop-filter: blur(16px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
+}
+
+:root[data-theme="dark"] .data-table-clean th {
+    background: rgba(0, 0, 0, 0.2) !important; 
+    color: #e2e8f0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+:root[data-theme="dark"] .data-table-clean td {
+    color: var(--text) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+:root[data-theme="dark"] .data-table-clean tbody tr:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* --- BOTÓN DE CAMBIO DE TEMA (MODO OSCURO) --- */
+:root[data-theme="dark"] #theme-toggle {
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: var(--text) !important;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+:root[data-theme="dark"] #theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* --- BOTONES Y DETALLES --- */
+:root[data-theme="dark"] .btn-process {
+    background: rgba(14, 165, 233, 0.8) !important;
+    border: 1px solid rgba(14, 165, 233, 0.3) !important;
+    color: #fff !important;
+}
+
+:root[data-theme="dark"] .btn-process:hover {
+    background: rgba(14, 165, 233, 1) !important;
+}
+
+:root[data-theme="dark"] .btn-action.btn-edit { color: #38bdf8 !important; background: rgba(56, 189, 248, 0.1) !important; border: 1px solid rgba(56, 189, 248, 0.2); }
+:root[data-theme="dark"] .btn-action.btn-disable { color: #f87171 !important; background: rgba(248, 113, 113, 0.1) !important; border: 1px solid rgba(248, 113, 113, 0.2); }
+:root[data-theme="dark"] .btn-action.btn-enable { color: #4ade80 !important; background: rgba(74, 222, 128, 0.1) !important; border: 1px solid rgba(74, 222, 128, 0.2); }
+
+/* Badges de estado */
+:root[data-theme="dark"] .status-success { background: rgba(34, 197, 94, 0.2) !important; color: #4ade80 !important; }
+:root[data-theme="dark"] .status-warning { background: rgba(245, 158, 11, 0.2) !important; color: #fbbf24 !important; }
+:root[data-theme="dark"] .status-danger { background: rgba(239, 68, 68, 0.2) !important; color: #f87171 !important; }
+:root[data-theme="dark"] .status-secondary { background: rgba(148, 163, 184, 0.2) !important; color: #cbd5e1 !important; }
+
+/* Correcciones de inputs y selects */
 :root[data-theme="dark"] input:-webkit-autofill,
 :root[data-theme="dark"] input:-webkit-autofill:hover,
 :root[data-theme="dark"] input:-webkit-autofill:focus {
     -webkit-text-fill-color: var(--text);
-    -webkit-box-shadow: 0 0 0px 1000px var(--background) inset;
-    box-shadow: 0 0 0px 1000px var(--background) inset;
+    -webkit-box-shadow: 0 0 0px 1000px #0f172a inset;
+    box-shadow: 0 0 0px 1000px #0f172a inset;
 }
 
-/* Tablas: cabecera y hover */
-:root[data-theme="dark"] .data-table-clean th {
-    background: #172033;
-}
-:root[data-theme="dark"] .data-table-clean tbody tr:hover {
-    background: #172033;
+:root[data-theme="dark"] .input-group select option {
+    background: #1e293b;
+    color: var(--text);
 }
 
-/* Login: Fondo de la página */
+/* Fondo del Login en modo oscuro */
 :root[data-theme="dark"] .login-page {
-    background:
+    background-image: 
         radial-gradient(circle at 20% 20%, rgba(101, 216, 255, 0.10), transparent 30%),
         radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.10), transparent 30%),
         linear-gradient(rgba(15, 23, 42, 0.90), rgba(15, 23, 42, 0.95)),
-        url('/images/pexels-atahandemir-33888376.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+        url('/images/pexels-atahandemir-33888376.jpg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+[data-theme="dark"] .nav-item.active {
+    background: rgba(59, 130, 246, 0.4) !important; /* Azul oscuro transparente */
+    color: #ffffff !important; /* Texto blanco */
+    border-left: 4px solid #3b82f6 !important;
+}
+[data-theme="dark"] .nav-item.active span {
+    color: #ffffff !important;
 }
 
-/* Badges de estado */
-:root[data-theme="dark"] .status-success { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-:root[data-theme="dark"] .status-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-:root[data-theme="dark"] .status-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-:root[data-theme="dark"] .status-secondary { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
-
-/* Opciones de los selects */
-:root[data-theme="dark"] .input-group select option {
-    background: var(--card);
-    color: var(--text);
+[data-theme="dark"] .user-profile {
+    border: 1px solid rgba(255,255,255, 0.1) !important;
+}
+[data-theme="dark"] .user-info strong,
+[data-theme="dark"] .user-info span {
+    color: #f1f5f9 !important;
 }

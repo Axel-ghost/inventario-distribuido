@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>CoreBuild | Login</title>
+    <title>Bajaj | Login</title>
 
     <!-- 1. Agregamos dark.css y app.js -->
     @vite(['resources/css/app.css', 'resources/css/dark.css', 'resources/js/app.js'])
@@ -31,12 +31,11 @@
     <section class="login-card">
 
         <div class="brand">
-            <span class="brand-line"></span>
-
-            <h1>CoreBuild</h1>
-
-            <span class="brand-subtitle">
-                GAMING
+            <!-- Se agregó max-width: 100% para que se adapte al ancho de la tarjeta -->
+            <img src="{{ asset('images/logo.png') }}" alt="Logo" style="max-width: 100%; max-height: 80px; object-fit: contain; display: block; margin: 0 auto 15px auto;">
+            
+            <span class="brand-subtitle" style="font-size: 10px; letter-spacing: 4px;">
+                SISTEMA DE GESTIÓN
             </span>
         </div>
 
@@ -79,7 +78,7 @@
     </div>
 
     <button type="submit" class="login-button">
-        INICIAR SESION
+        INICIAR SESIÓN
     </button>
 
     <a href="{{ route('tienda.index') }}" class="catalog-back-button">
@@ -93,13 +92,13 @@
     </form>
 
         <p class="system-status">
-             ▫️Sistema seguro
+             ▫️ Sistema seguro
         </p>
 
     </section>
 
     <!-- 3. Botón flotante para el modo oscuro -->
-    <button id="theme-toggle" class="action-btn" type="button" title="Cambiar tema" style="position: absolute; top: 20px; right: 20px; z-index: 100; padding: 10px 15px; background: var(--card);">
+    <button id="theme-toggle" class="action-btn" type="button" title="Cambiar tema" style="position: absolute; top: 20px; right: 20px; z-index: 100; padding: 10px 15px; background: var(--card); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
         <span id="theme-icon">☁︎</span>
     </button>
 

@@ -4,10 +4,10 @@
 
 <aside class="sidebar">
 
-    <div class="sidebar-brand">
-        <span class="brand-line"></span>
-        <h1>CoreBuild</h1>
-        <span class="brand-subtitle">GAMING</span>
+    <div class="sidebar-brand" style="width: 100%; padding: 0 15px; box-sizing: border-box; text-align: center; margin-bottom: 30px;">
+        <!-- Se agregó max-width: 100% y object-fit para que se adapte al ancho del sidebar -->
+        <img src="{{ asset('images/logo.png') }}" alt="Logo" style="max-width: 100%; height: auto; max-height: 55px; object-fit: contain; display: block; margin: 0 auto 10px auto;">
+        <span class="brand-subtitle" style="font-size: 9px; letter-spacing: 4px; color: #94a3b8; display: block;">SISTEMA DE GESTIÓN</span>
     </div>
 
     <nav class="sidebar-nav">
@@ -66,8 +66,8 @@
 
     </nav>
 
-    <div class="sidebar-footer" style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: center;">
-        <button id="theme-toggle" class="action-btn" type="button" title="Cambiar tema" style="width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 50%; cursor: pointer; transition: 0.2s;">
+    <div class="sidebar-footer" style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: center;">
+        <button id="theme-toggle" class="action-btn" type="button" title="Cambiar tema" style="width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: #cbd5e1; border-radius: 50%; cursor: pointer; transition: 0.2s;">
             <span id="theme-icon" style="font-size: 18px;">☁︎</span>
         </button>
     </div>

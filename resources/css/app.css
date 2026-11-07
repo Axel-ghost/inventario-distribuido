@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 * {
@@ -8,12 +7,12 @@
 }
 
 :root {
-    --background: #f4f7f9;
+    --background: transparent; 
     --bg-darker: #ffffff;
     --card: #ffffff;
     --border: #e2e8f0;
-    --text: #1b2636;
-    --muted: #64748b;
+    --text: #ffffff;    
+    --muted: #e0f2fe;
     --accent: #1b2636;
     --accent-secondary: #8b5cf6;
     --accent-bg: #e0f2fe;
@@ -133,15 +132,6 @@ body {
     box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
 }
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-    -webkit-text-fill-color: var(--text);
-    -webkit-box-shadow: 0 0 0px 1000px #f4f7f9 inset;
-    box-shadow: 0 0 0px 1000px #f4f7f9 inset;
-    transition: background-color 5000s ease-in-out 0s;
-}
-
 .badge {
     display: inline-block;
     font-size: 11px;
@@ -168,19 +158,31 @@ input:-webkit-autofill:focus {
 
 .btn-process {
     position: relative;
-    width: 100%;
-    min-width: 220px;
-    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    min-width: 160px;
+    height: 44px;
+    padding: 0 20px;
     border: none;
-    border-radius: 14px;
-    background: var(--accent);
+    border-radius: 10px;
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ffffff;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 14px;
     letter-spacing: 0.5px;
     cursor: pointer;
-    overflow: hidden;
-    transition: background 0.3s ease;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-process:hover {
+    background: rgba(51, 65, 85, 0.9);
+    transform: translateY(-2px);
 }
 
 .btn-process:disabled {
@@ -510,13 +512,14 @@ input:-webkit-autofill:focus {
     text-decoration: none;
     font-size: 13px;
     font-weight: 500;
-    transition: 0.25s ease;
+    transition: all 0.3s ease; 
 }
 
 .nav-item span {
     width: 20px;
     text-align: center;
     font-size: 16px;
+    transition: all 0.3s ease;
 }
 
 .nav-item:hover {
@@ -529,6 +532,7 @@ input:-webkit-autofill:focus {
     background: var(--accent-bg);
     font-weight: 600;
     border-left: 3px solid var(--accent);
+    transition: all 0.3s ease; 
 }
 
 .sidebar-badge {
@@ -967,11 +971,6 @@ input:-webkit-autofill:focus {
     max-width: 220px;
 }
 
-.tienda-body {
-    background: var(--background);
-    min-height: 100vh;
-}
-
 .tienda-nav {
     display: flex;
     justify-content: space-between;
@@ -1319,7 +1318,6 @@ input:-webkit-autofill:focus {
     margin-bottom: 30px;
 }
 
-
 .data-table-clean {
     width: 100%;
     border-collapse: collapse;
@@ -1419,6 +1417,7 @@ input:-webkit-autofill:focus {
     color: var(--text);
     border-color: #cbd5e1;
 }
+
 .action-link {
     display: inline-block;
     color: var(--accent);
@@ -1463,7 +1462,7 @@ input:-webkit-autofill:focus {
 .btn-link:hover {
     text-decoration: underline;
 }
-/* Transición suave para el cambio de tema */
+
 body,
 .dashboard,
 .dashboard-content,
@@ -1489,7 +1488,6 @@ select,
     margin: 25px auto;
     padding: 35px;
     box-sizing: border-box;
-    /* Usa el fondo de tarjeta, pero si no existe, usa el azul oscuro original */
     background: var(--card, #101923); 
     border: 1px solid var(--border, rgba(96, 213, 248, 0.20));
     border-radius: 16px;
@@ -1661,7 +1659,6 @@ select,
     }
 }
 
-/* --- ESTILOS DE IMPRESIÓN --- */
 @media print {
     .sidebar, .dashboard-header, .ticket-actions { display: none !important; }
     .ticket { border: none !important; box-shadow: none !important; padding: 0 !important; }
@@ -1673,4 +1670,679 @@ select,
     .ticket-meta strong, .ticket-table td, .ticket-total span, .ticket-total strong { color: #000000 !important; }
     .ticket-table th, .ticket-table td { border-bottom: 1px solid #cccccc !important; }
     .ticket-total { border-top: 2px solid #222222 !important; }
+}
+
+/* ==== DISEÑO GENERAL Y TIPOGRAFÍA ==== */
+.dashboard,
+.dashboard-content {
+    background: transparent !important;
+}
+
+.dashboard-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.page-label {
+    letter-spacing: 2px;
+    font-size: 9px;
+    opacity: 0.7;
+}
+
+.stat-card {
+    padding: 16px 18px;
+    border-radius: 14px;
+}
+
+.stat-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
+}
+
+.stat-card strong {
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.welcome-section {
+    padding: 22px 24px;
+    border-radius: 14px;
+}
+
+.welcome-section h3 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.panel {
+    border-radius: 14px;
+}
+
+.panel-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.dashboard-content .stat-card,
+.dashboard-content .welcome-section,
+.dashboard-content .panel,
+.dashboard-content .table-container,
+.dashboard-content .form-card,
+.sidebar {
+    /* Fondo casi transparente (10% de blanco) */
+    background: rgba(255, 255, 255, 0.1) !important;
+ 
+    /* Desenfoque que empaña la moto detrás */
+    -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+    backdrop-filter: blur(30px) saturate(150%) !important;
+ 
+    /* Sin bordes */
+    border: none !important;
+ 
+    /* Sombra para que las tarjetas resalten */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+}
+ 
+/* El sidebar con un poco más de desenfoque */
+.sidebar {
+    -webkit-backdrop-filter: blur(40px) saturate(150%) !important;
+    backdrop-filter: blur(40px) saturate(150%) !important;
+}
+ 
+ 
+/* ==== TEXTOS ==== */
+/* Blancos con sombra para que resalten sobre el difuminado */
+.data-table-clean td,
+.dashboard-header h2,
+.stat-card strong,
+.welcome-section h3,
+.panel-header h3,
+.welcome-label,
+.inventory-item strong,
+.activity-item strong {
+    color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
+}
+ 
+/* Cabecera de la tabla */
+.data-table-clean th {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+ 
+.data-table-clean tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+ 
+ 
+/* ==== PERFIL Y MENÚ ==== */
+/* Fondo 100% transparente para el botón del perfil */
+.user-profile {
+    background: transparent !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important; /* Borde blanco sutil */
+    box-shadow: none !important; /* Quitamos la sombra para que no parezca tarjeta */
+    transition: all 0.3s ease;
+}
+
+/* Hover sutil para saber que es clickeable */
+.user-profile:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Textos blancos en ambos modos */
+.user-info strong,
+.user-info span {
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important; /* Sombra para modo claro */
+}
+
+/* Avatar transparente con borde blanco */
+.user-avatar {
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Mantener tus estilos de menú activo y botones */
+.nav-item.active {
+    background: rgba(59, 130, 246, 0.8) !important; 
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+ 
+.nav-item.active span {
+    color: #ffffff !important;
+}
+ 
+.panel-header button {
+    color: #60a5fa !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+ 
+/* ==== BOTONES DE ACCIÓN (TABLA) ==== */
+.btn-action {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    background: transparent !important;
+}
+ 
+.btn-action svg {
+    width: 18px !important;
+    height: 18px !important;
+    stroke: currentColor !important;
+    fill: none !important;
+    display: block !important;
+}
+ 
+.btn-action.btn-edit {
+    color: #38bdf8 !important;
+    background: rgba(56, 189, 248, 0.2) !important;
+}
+.btn-action.btn-edit:hover {
+    background: rgba(56, 189, 248, 0.4) !important;
+}
+ 
+.btn-action.btn-disable {
+    color: #f87171 !important;
+    background: rgba(248, 113, 113, 0.2) !important;
+}
+.btn-action.btn-disable:hover {
+    background: rgba(248, 113, 113, 0.4) !important;
+}
+ 
+.btn-action.btn-enable {
+    color: #4ade80 !important;
+    background: rgba(74, 222, 128, 0.2) !important;
+}
+.btn-action.btn-enable:hover {
+    background: rgba(74, 222, 128, 0.4) !important;
+}
+ 
+.actions-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: max-content !important;
+}
+ 
+ 
+/* ==== ARREGLOS PARA EL LOGIN EN MODO CLARO ==== */
+html[data-theme="light"] .login-card .login-heading h2,
+html[data-theme="light"] .login-card .input-group label {
+    color: #1b2636 !important;
+}
+ 
+html[data-theme="light"] .login-card .login-heading p {
+    color: #64748b !important;
+}
+ 
+html[data-theme="light"] .login-card .catalog-back-button {
+    color: #1b2636 !important;
+    border-color: #1b2636 !important;
+}
+ 
+html[data-theme="light"] .login-card .input-group input {
+    color: #1b2636 !important;
+    -webkit-text-fill-color: #1b2636 !important;
+    background-color: #f4f7f9 !important;
+    border-color: #e2e8f0 !important;
+}
+ 
+html[data-theme="light"] .login-card .input-group input::placeholder {
+    color: #94a3b8 !important;
+}
+ 
+html[data-theme="light"] .login-card .brand img {
+    filter: brightness(0) saturate(100%) invert(11%) sepia(15%) saturate(1188%) hue-rotate(178deg) brightness(94%) contrast(94%) !important;
+}
+ 
+html[data-theme="light"] .login-card .brand-subtitle,
+html[data-theme="light"] .login-card p[style*="text-align: center"],
+html[data-theme="light"] .login-card .system-status {
+    color: #64748b !important;
+}
+ 
+ 
+/* ==== ANIMACIÓN DE ENTRADA ==== */
+/* La animación va SOLO en los elementos que ya tienen el efecto glass.
+   Si se pone en un contenedor (el main, .stats-grid, .dashboard-grid...),
+   su opacity animada se vuelve "raíz del backdrop" y las tarjetas de adentro
+   dejan de ver el fondo: se ven sin desenfoque.
+   Se dispara sola cada vez que el JS inserta contenido nuevo. */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+ 
+.dashboard-content .user-profile,
+.dashboard-content .welcome-section,
+.dashboard-content .stat-card,
+.dashboard-content .panel,
+.dashboard-content .table-container {
+    animation: fadeIn 0.4s ease-out backwards;
+}
+ 
+/* Contenedores de tarjetas: nada que cree una raíz de backdrop-filter */
+.dashboard-content .stats-grid,
+.dashboard-content .dashboard-grid {
+    opacity: 1 !important;
+    filter: none !important;
+    will-change: auto !important;
+    animation: none !important;
+}
+ 
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-content .user-profile,
+    .dashboard-content .welcome-section,
+    .dashboard-content .stat-card,
+    .dashboard-content .panel,
+    .dashboard-content .table-container {
+        animation: none;
+    }
+}
+ 
+/* ==== VISTA DASHBOARD ==== */
+/* Evita que el contenido de las cuadrículas las estire */
+.stats-grid > *,
+.dashboard-grid > * {
+    min-width: 0;
+}
+ 
+/* Textos secundarios (etiquetas, categorías, fechas, descripciones) */
+.dashboard-content .stat-card span,
+.dashboard-content .panel-header span,
+.dashboard-content .inventory-item span,
+.dashboard-content .activity-item span,
+.dashboard-content .welcome-section p:not(.welcome-label),
+.dashboard-content .inventory-list > p {
+    color: rgba(255, 255, 255, 0.78) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+ 
+/* Íconos de las tarjetas de estadísticas */
+.dashboard-content .stat-icon {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+ 
+/* Stock bajo: recupera el color de alerta (el blanco global lo pisaba) */
+.dashboard-content .inventory-item .stock-warning {
+    color: #fbbf24 !important;
+}
+ 
+/* Operaciones recientes */
+.activity-dot.activity-dot--venta {
+    background-color: #10b981 !important;
+}
+ 
+.activity-dot.activity-dot--otro {
+    background-color: #f59e0b !important;
+}
+ 
+.dashboard-content .activity-item .activity-detail {
+    display: block;
+    font-size: 0.85em;
+    margin-bottom: 2px;
+}
+ 
+/* Enlace "Ver todo" del encabezado de cada panel */
+.panel-header .panel-link {
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(96, 165, 250, 0.15);
+    color: #60a5fa !important;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    transition: background 0.2s ease;
+}
+ 
+.panel-header .panel-link:hover {
+    background: rgba(96, 165, 250, 0.3);
+}
+ 
+.panel-header .panel-link:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+}
+/* ==== FORMULARIO (CRISTAL DIFUMINADO) ==== */
+.dashboard-content .form-card {
+    /* Mismo fondo semitransparente que las tablas */
+    background: rgba(255, 255, 255, 0.15) !important;
+    
+    /* Desenfoque empañado original */
+    -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+    backdrop-filter: blur(30px) saturate(150%) !important;
+    
+    /* Sin bordes */
+    border: none !important;
+    
+    /* Sombra para separar del fondo */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+    
+    /* Para que el JS y el desenfoque no fallen */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: backdrop-filter;
+    
+    padding: 30px;
+    border-radius: 16px;
+}
+
+/* Etiquetas de los inputs */
+.dashboard-content .form-card label {
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    font-weight: 500;
+}
+
+html[data-theme="light"] .dashboard-content .form-card label {
+    color: #1b2636 !important;
+    text-shadow: none;
+}
+
+/* Inputs base: 100% transparentes */
+.dashboard-content .form-card input[type="text"],
+.dashboard-content .form-card input[type="email"],
+.dashboard-content .form-card input[type="password"],
+.dashboard-content .form-card input[type="number"],
+.dashboard-content .form-card input[type="url"],
+.dashboard-content .form-card select {
+    background: transparent !important; 
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important; 
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 8px;
+    padding: 14px 16px;
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.25s ease;
+}
+
+/* Texto de los placeholders */
+.dashboard-content .form-card input::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Foco en los inputs (brillo azul) */
+.dashboard-content .form-card input:focus,
+.dashboard-content .form-card select:focus {
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3) !important;
+}
+
+/* Arreglar el menú desplegable del Select (Rol) */
+.dashboard-content .form-card select option {
+    background-color: #1e293b;
+    color: #ffffff;
+}
+
+/* TRUCO: Forzar la transparencia cuando el navegador autocompleta (Usuario/Contraseña) */
+.dashboard-content .form-card input:-webkit-autofill,
+.dashboard-content .form-card input:-webkit-autofill:hover, 
+.dashboard-content .form-card input:-webkit-autofill:focus, 
+.dashboard-content .form-card input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Textos de ayuda */
+.dashboard-content .form-card small {
+    color: rgba(255, 255, 255, 0.7) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Botón de guardar */
+.dashboard-content .form-card .btn-process {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-weight: 700 !important;
+    transition: all 0.3s ease;
+}
+
+.dashboard-content .form-card .btn-process:hover {
+    background: #2563eb !important;
+    transform: translateY(-2px);
+}
+
+/* =========================================
+   ADAPTACIÓN PARA MODO CLARO (Formulario)
+   ========================================= */
+html[data-theme="light"] .dashboard-content .form-card input[type="text"],
+html[data-theme="light"] .dashboard-content .form-card input[type="email"],
+html[data-theme="light"] .dashboard-content .form-card input[type="password"],
+html[data-theme="light"] .dashboard-content .form-card input[type="number"],
+html[data-theme="light"] .dashboard-content .form-card input[type="url"],
+html[data-theme="light"] .dashboard-content .form-card select {
+    color: #1b2636 !important;
+    -webkit-text-fill-color: #1b2636 !important;
+    border: 1px solid rgba(27, 38, 54, 0.2) !important;
+}
+
+html[data-theme="light"] .dashboard-content .form-card input::placeholder {
+    color: rgba(27, 38, 54, 0.5) !important;
+}
+
+html[data-theme="light"] .dashboard-content .form-card select option {
+    background-color: #ffffff;
+    color: #1b2636;
+}
+
+html[data-theme="light"] .dashboard-content .form-card input:-webkit-autofill,
+html[data-theme="light"] .dashboard-content .form-card input:-webkit-autofill:hover, 
+html[data-theme="light"] .dashboard-content .form-card input:-webkit-autofill:focus, 
+html[data-theme="light"] .dashboard-content .form-card input:-webkit-autofill:active {
+    -webkit-text-fill-color: #1b2636 !important;
+}
+/* =========================================
+   FORMULARIO IGUAL A LAS TARJETAS DEL DASHBOARD
+   ========================================= */
+
+/* 1. Fondo y cristal del formulario */
+.dashboard-content .form-card {
+    background: rgba(30, 41, 59, 0.25) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+    backdrop-filter: blur(30px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+    transform: translateZ(0);
+    padding: 30px;
+    border-radius: 16px;
+}
+
+/* 2. Inputs base (Modo Oscuro) */
+.dashboard-content .form-card input[type="text"],
+.dashboard-content .form-card input[type="email"],
+.dashboard-content .form-card input[type="password"],
+.dashboard-content .form-card input[type="number"],
+.dashboard-content .form-card input[type="url"],
+.dashboard-content .form-card input[type="file"],
+.dashboard-content .form-card select {
+    background: transparent !important; 
+    border: 1px solid rgba(255, 255, 255, 0.5) !important; 
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    padding: 14px 16px;
+    border-radius: 8px;
+}
+
+/* 3. Etiquetas base */
+.dashboard-content .form-card label,
+.dashboard-content .form-card small {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* =========================================
+   4. FORZAR BLANCO EN MODO CLARO (Súper estricto)
+   ========================================= */
+html[data-theme="light"] .dashboard-content .form-card label,
+html[data-theme="light"] .dashboard-content .form-card small,
+html[data-theme="light"] .dashboard-content .form-card input,
+html[data-theme="light"] .dashboard-content .form-card select {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important; 
+}
+
+/* Aquí forzamos el borde con la técnica que el navegador no puede ignorar */
+html[data-theme="light"] .dashboard-content .form-card input,
+html[data-theme="light"] .dashboard-content .form-card select {
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* 5. Neutralizar el autocompletado (MODO OSCURO) */
+.dashboard-content .form-card input:-webkit-autofill,
+.dashboard-content .form-card input:-webkit-autofill:hover, 
+.dashboard-content .form-card input:-webkit-autofill:focus, 
+.dashboard-content .form-card input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* 6. Neutralizar el autocompletado (MODO CLARO) */
+html[data-theme="light"] .dashboard-content .form-card input:-webkit-autofill,
+html[data-theme="light"] .dashboard-content .form-card input:-webkit-autofill:hover, 
+html[data-theme="light"] .dashboard-content .form-card input:-webkit-autofill:focus, 
+html[data-theme="light"] .dashboard-content .form-card input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px transparent inset, inset 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+
+/* 7. Foco (brillo azul al hacer clic) */
+.dashboard-content .form-card input:focus,
+.dashboard-content .form-card select:focus {
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3) !important;
+}
+/* =========================================
+   CONTORNO BLANCO SUTIL PARA LAS TABLAS
+   ========================================= */
+
+/* 1. Línea divisoria de la cabecera */
+.dashboard-content .data-table-clean th {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 2. Línea divisoria entre cada fila */
+.dashboard-content .data-table-clean td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 3. Quitar la línea de la última fila para que quede limpio */
+.dashboard-content .data-table-clean tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* 4. Contorno exterior para toda la caja de la tabla (opcional, igual al form-card) */
+.dashboard-content .table-container {
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* =========================================
+   ADAPTACIÓN DEL MENÚ DE PERFIL (GLASSMORPHISM)
+   ========================================= */
+
+/* 1. Fondo tipo cristal para el menú desplegable (Modo Oscuro) */
+.profile-dropdown {
+    background: rgba(30, 41, 59, 0.4) !important; /* Tinte oscuro sutil */
+    -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+    backdrop-filter: blur(30px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 2. Líneas divisorias del menú */
+.profile-dropdown-header,
+.profile-dropdown-body {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 3. Textos base (Aplican a ambos modos, blancos) */
+.profile-dropdown-header strong,
+.profile-field,
+.profile-field strong,
+.profile-upload-label,
+.profile-dropdown-footer .nav-item {
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+}
+
+.profile-email,
+.profile-field span {
+    color: rgba(255, 255, 255, 0.7) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+.profile-upload-label {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.profile-upload-label:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* =========================================
+   4. ADAPTACIÓN A MODO CLARO (Cristal y textos blancos)
+   ========================================= */
+html[data-theme="light"] .profile-dropdown {
+    /* Mantiene el cristal sutil */
+    background: rgba(255, 255, 255, 0.1) !important; 
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+    backdrop-filter: blur(30px) saturate(150%) !important;
+}
+
+html[data-theme="light"] .profile-dropdown-header,
+html[data-theme="light"] .profile-dropdown-body {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Forzamos los textos a BLANCO también en modo claro */
+html[data-theme="light"] .profile-dropdown-header strong,
+html[data-theme="light"] .profile-field,
+html[data-theme="light"] .profile-field strong,
+html[data-theme="light"] .profile-upload-label,
+html[data-theme="light"] .profile-dropdown-footer .nav-item {
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important; /* Sombra para que resalte sobre el fondo claro */
+}
+
+html[data-theme="light"] .profile-email,
+html[data-theme="light"] .profile-field span {
+    color: rgba(255, 255, 255, 0.8) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+html[data-theme="light"] .profile-upload-label {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+html[data-theme="light"] .profile-upload-label:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
 }

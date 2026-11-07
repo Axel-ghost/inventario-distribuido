@@ -9,6 +9,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css', 
                 'resources/css/dark.css',
+                'resources/css/tienda.css',
                 'resources/js/app.js'
             ],
             refresh: true,

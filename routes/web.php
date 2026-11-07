@@ -19,9 +19,8 @@ Route::get('/', function () {
     }
 
     return view('login');
-})->name('inicio'); // Nota: le cambié el nombre a 'inicio' para no chocar con la ruta /login
+})->name('inicio');
 
-// 1. Ruta para MOSTRAR el formulario (GET)
 Route::get('/login', function () {
     if (Auth::check()) {
         $destinoDefault = Auth::user()->rol === 'cliente' ? '/tienda' : '/dashboard';
@@ -30,7 +29,6 @@ Route::get('/login', function () {
     return view('login');
 })->name('login');
 
-// 2. Ruta para PROCESAR el formulario (POST)
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'usuario' => ['required', 'string'],
@@ -40,7 +38,6 @@ Route::post('/login', function (Request $request) {
     if (Auth::attempt(['usuario' => $credentials['usuario'], 'password' => $credentials['password']])) {
         $request->session()->regenerate();
 
-        // ✅ CORREGIDO AQUÍ: Ahora usa 'activo' que es el nombre real de tu columna
         if (! Auth::user()->activo) { 
             Auth::logout();
             return back()->withErrors(['usuario' => 'Tu cuenta está desactivada.']);
@@ -54,7 +51,6 @@ Route::post('/login', function (Request $request) {
     return back()->withErrors(['usuario' => 'Usuario o contraseña incorrectos.']);
 })->name('login.attempt');
 
-// 3. Tu ruta de logout
 Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
@@ -174,20 +170,16 @@ Route::post('/tienda/registro', function (Request $request) {
 
 Route::middleware(['auth'])->group(function () {
 
-    // Todos los roles internos
     Route::get('/dashboard', function () {
         if (Auth::user()->rol === 'cliente') {
             return redirect('/tienda');
         }
 
         $totalProductos = Producto::count();
-
         $stockBajo = Producto::whereColumn('existencia', '<=', 'stock_minimo')->count();
-
         $ventasDelMes = Venta::whereMonth('fecha_venta', now()->month)
             ->whereYear('fecha_venta', now()->year)
             ->sum('total');
-
         $pedidosPendientes = Pedido::whereIn('estado', ['solicitado', 'en_revision'])->count();
 
         $productosStockBajo = Producto::whereColumn('existencia', '<=', 'stock_minimo')
@@ -195,9 +187,6 @@ Route::middleware(['auth'])->group(function () {
             ->limit(3)
             ->get();
 
-        // --- OPERACIONES RECIENTES ---
-
-        // 1. Obtener últimas 5 ventas
         $ventas = Venta::orderByDesc('fecha_venta')->take(3)->get()->map(function ($venta) {
             return [
                 'tipo' => 'venta',
@@ -208,7 +197,6 @@ Route::middleware(['auth'])->group(function () {
             ];
         });
 
-        // 2. Obtener últimos 5 pedidos
         $pedidos = Pedido::with('solicitante')->orderByDesc('fecha_solicitud')->take(3)->get()->map(function ($pedido) {
             return [
                 'tipo' => 'pedido',
@@ -219,7 +207,6 @@ Route::middleware(['auth'])->group(function () {
             ];
         });
 
-        // 3. Unir, ordenar por fecha real y tomar los 5 más recientes
         $operacionesRecientes = $ventas->concat($pedidos)
             ->sortByDesc('timestamp')
             ->take(3)
@@ -232,7 +219,7 @@ Route::middleware(['auth'])->group(function () {
             'pedidosPendientes',
             'productosStockBajo',
             'operacionesRecientes'
-        ));
+        ))->with('activePage', 'dashboard');
     });
 
     Route::post('/perfil/foto', function (Request $request) {
@@ -240,7 +227,6 @@ Route::middleware(['auth'])->group(function () {
             'foto' => ['required', 'image', 'max:2048'],
         ]);
 
-        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         if ($user->foto) {
@@ -253,7 +239,6 @@ Route::middleware(['auth'])->group(function () {
         return back()->with('status', 'Foto actualizada correctamente.');
     });
 
-    // Checkout: cualquier usuario logueado (pensado para clientes)
     Route::get('/tienda/checkout', function () {
         $carrito = session('carrito', []);
 
@@ -340,12 +325,11 @@ Route::middleware(['auth'])->group(function () {
         return view('tienda.confirmacion', compact('pedido'));
     })->name('tienda.confirmacion');
 
-    // Productos e Inventario: administrador, vendedor y almacén
     Route::middleware('rol:administrador,vendedor,almacen')->group(function () {
 
         Route::get('/productos', function () {
             $productos = Producto::all();
-            return view('productos', compact('productos'));
+            return view('productos.index', compact('productos'))->with('activePage', 'productos');
         });
 
         Route::get('/inventario', function () {
@@ -354,11 +338,10 @@ Route::middleware(['auth'])->group(function () {
             $agotados = $productos->where('existencia', 0)->count();
             $bajos = $productos->filter(fn ($p) => $p->existencia > 0 && $p->existencia <= $p->stock_minimo)->count();
 
-            return view('inventario', compact('productos', 'agotados', 'bajos'));
+            return view('inventario', compact('productos', 'agotados', 'bajos'))->with('activePage', 'inventario');
         });
     });
 
-    // Alta y edición de productos: administrador y almacén
     Route::middleware('rol:administrador,almacen')->group(function () {
 
         Route::get('/productos/crear', function () {
@@ -441,17 +424,14 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // Baja lógica de productos: solo administrador
     Route::middleware('rol:administrador')->group(function () {
 
         Route::patch('/productos/{producto}/estado', function (Producto $producto) {
             $producto->update(['activo' => ! $producto->activo]);
-
             return back()->with('status', 'Estado del producto actualizado.');
         });
     });
 
-    // Pedidos (requisiciones de reabasto): administrador y almacén
     Route::middleware('rol:administrador,almacen')->group(function () {
 
         Route::get('/pedidos', function () {
@@ -463,7 +443,7 @@ Route::middleware(['auth'])->group(function () {
 
             $pedidos = $query->get();
 
-            return view('pedidos.index', compact('pedidos'));
+            return view('pedidos.index', compact('pedidos'))->with('activePage', 'pedidos');
         });
 
         Route::get('/pedidos/crear', function (Request $request) {
@@ -535,7 +515,6 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // Revisar, aprobar y rechazar pedidos: solo administrador
     Route::middleware('rol:administrador')->group(function () {
 
         Route::patch('/pedidos/{pedido}/revisar', function (Pedido $pedido) {
@@ -571,7 +550,6 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // Registrar ventas: solo administrador y vendedor
     Route::middleware('rol:administrador,vendedor')->group(function () {
 
         Route::get('/ventas/crear', function () {
@@ -632,7 +610,6 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // Consultar ventas: administrador, vendedor y caja
     Route::middleware('rol:administrador,vendedor,caja')->group(function () {
 
         Route::get('/ventas', function () {
@@ -640,7 +617,7 @@ Route::middleware(['auth'])->group(function () {
                 ->orderByDesc('fecha_venta')
                 ->get();
 
-            return view('ventas', compact('ventas'));
+            return view('ventas.index', compact('ventas'))->with('activePage', 'ventas');
         });
 
         Route::get('/ventas/{venta}', function (Venta $venta) {
@@ -650,7 +627,6 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // Búsqueda de productos: administrador, vendedor y almacén (ventas Y pedidos la usan)
     Route::middleware('rol:administrador,vendedor,almacen')->group(function () {
 
         Route::get('/api/productos/buscar', function (Request $request) {
@@ -668,12 +644,11 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // Usuarios y permisos: solo administrador
     Route::middleware('rol:administrador')->group(function () {
 
         Route::get('/usuarios', function () {
             $usuarios = User::orderBy('name')->get();
-            return view('usuarios.index', compact('usuarios'));
+            return view('usuarios.index', compact('usuarios'))->with('activePage', 'usuarios');
         });
 
         Route::get('/usuarios/crear', function () {
@@ -731,7 +706,6 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 });
-
 
 Route::get('/debug-log-9f21', function () {
     $path = storage_path('logs/laravel.log');
