@@ -57,13 +57,13 @@
 
     </div>
 
-    <div class="ticket-actions no-print" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; max-width: 850px; margin: 25px auto;">
+    <div class="ticket-actions no-print">
         
-        <a href="/ventas" class="catalog-back-button" style="width: auto; min-width: 220px; margin-top: 0;">
+        <a href="/ventas" class="catalog-back-button">
             &larr; Volver al historial
         </a>
 
-        <button type="button" class="btn-process" onclick="window.print()" style="width: auto; min-width: 220px;">
+        <button type="button" class="btn-process" onclick="window.print()">
             <span class="btn-label">Imprimir / Guardar PDF</span>
         </button>
 

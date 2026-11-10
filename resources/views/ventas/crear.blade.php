@@ -37,7 +37,7 @@
             </table>
         </div>
 
-        <form id="formVenta" method="POST" action="/ventas">
+        <form id="formVenta" method="POST" action="/ventas" style="display: flex; flex-direction: column; gap: 20px;">
             @csrf
 
             <div class="venta-resumen">
@@ -48,6 +48,13 @@
 
                 <x-order-button id="btnConfirmarVenta" label="Confirmar venta" />
             </div>
+
+            <!-- Botón de Cancelar debajo del total -->
+            <div style="display: flex;">
+                <a href="/ventas" class="btn-cancel" style="width: auto; min-width: 200px; height: 54px;">
+                    Cancelar y volver
+                </a>
+            </div>
         </form>
 
     </div>
@@ -56,67 +63,103 @@
 
 @push('scripts')
 <script>
-    const carrito = [];
+    document.addEventListener('input', function (e) {
+        if (e.target && e.target.id === 'buscarProducto') {
+            const inputBuscar = e.target;
+            const termino = inputBuscar.value.trim();
+            const sugerenciasBox = document.getElementById('sugerencias');
 
-    const inputBuscar = document.getElementById('buscarProducto');
-    const sugerenciasBox = document.getElementById('sugerencias');
-    const carritoBody = document.getElementById('carritoBody');
-    const ventaTotalEl = document.getElementById('ventaTotal');
+            if (!sugerenciasBox) return;
 
-    let timeoutBusqueda = null;
+            if (termino.length < 2) {
+                sugerenciasBox.classList.remove('open');
+                sugerenciasBox.innerHTML = '';
+                return;
+            }
 
-    inputBuscar.addEventListener('input', function () {
-        const termino = this.value.trim();
-        clearTimeout(timeoutBusqueda);
+            clearTimeout(window.timeoutBusqueda);
+            window.timeoutBusqueda = setTimeout(() => {
+                fetch(`/api/productos/buscar?q=${encodeURIComponent(termino)}`)
+                    .then(res => res.json())
+                    .then(productos => {
+                        sugerenciasBox.classList.add('open'); // <-- AGREGA LA CLASE .open AQUÍ
 
-        if (termino.length < 2) {
-            sugerenciasBox.innerHTML = '';
-            sugerenciasBox.classList.remove('open');
-            return;
+                        if (productos.length === 0) {
+                            sugerenciasBox.innerHTML = '<div class="venta-sugerencia-vacia">Sin resultados</div>';
+                            return;
+                        }
+
+                        sugerenciasBox.innerHTML = productos.map(p => `
+                            <div class="venta-sugerencia" data-id="${p.id}" data-nombre="${p.nombre}" data-codigo="${p.codigo}" data-precio="${p.precio_venta}">
+                                <div>
+                                    <strong>${p.nombre}</strong>
+                                    <span>${p.codigo} · Existencia: ${p.existencia}</span>
+                                </div>
+                                <span>$${Number(p.precio_venta).toFixed(2)}</span>
+                            </div>
+                        `).join('');
+                    })
+                    .catch(err => console.error('Error en fetch:', err));
+            }, 250);
         }
-
-        timeoutBusqueda = setTimeout(() => {
-            fetch(`/api/productos/buscar?q=${encodeURIComponent(termino)}`)
-                .then(res => res.json())
-                .then(productos => mostrarSugerencias(productos));
-        }, 250);
     });
 
-    function mostrarSugerencias(productos) {
-        if (productos.length === 0) {
-            sugerenciasBox.innerHTML = '<div class="venta-sugerencia-vacia">Sin resultados</div>';
-            sugerenciasBox.classList.add('open');
-            return;
+    // Ocultar al hacer clic fuera
+    document.addEventListener('click', function (e) {
+        const sugerenciasBox = document.getElementById('sugerencias');
+        if (sugerenciasBox && !e.target.closest('.venta-buscador')) {
+            sugerenciasBox.classList.remove('open');
         }
 
-        sugerenciasBox.innerHTML = productos.map(p => `
-            <div class="venta-sugerencia" data-id="${p.id}">
-                <div>
-                    <strong>${p.nombre}</strong>
-                    <span>${p.codigo} · Existencia: ${p.existencia}</span>
-                </div>
-                <span>$${Number(p.precio_venta).toFixed(2)}</span>
-            </div>
-        `).join('');
-
-        sugerenciasBox.classList.add('open');
-
-        sugerenciasBox.querySelectorAll('.venta-sugerencia').forEach((el, index) => {
-            el.addEventListener('click', () => {
-                agregarAlCarrito(productos[index]);
-                sugerenciasBox.classList.remove('open');
-                inputBuscar.value = '';
+        // Clic en una sugerencia
+        if (e.target.closest('.venta-sugerencia')) {
+            const el = e.target.closest('.venta-sugerencia');
+            window.agregarAlCarrito({
+                id: el.dataset.id,
+                nombre: el.dataset.nombre,
+                codigo: el.dataset.codigo,
+                precio_venta: el.dataset.precio
             });
-        });
-    }
+            if (sugerenciasBox) sugerenciasBox.classList.remove('open');
+            const inputBuscar = document.getElementById('buscarProducto');
+            if (inputBuscar) inputBuscar.value = '';
+        }
 
-    function agregarAlCarrito(producto) {
-        const existente = carrito.find(item => item.id === producto.id);
+        // Clic en quitar producto
+        if (e.target.closest('.venta-quitar')) {
+            e.preventDefault();
+            const btn = e.target.closest('.venta-quitar');
+            const match = btn.getAttribute('onclick').match(/\d+/);
+            if (match) window.quitarDelCarrito(match[0]);
+        }
 
+        // Clic en confirmar venta
+        if (e.target.closest('#btnConfirmarVenta')) {
+            e.preventDefault();
+            if (!window.carritoVenta || window.carritoVenta.length === 0) {
+                alert('Agrega al menos un producto antes de confirmar.');
+                return;
+            }
+            const boton = e.target.closest('#btnConfirmarVenta');
+            if (typeof playOrderAnimation === 'function') {
+                playOrderAnimation(boton, {
+                    duration: 2200,
+                    onComplete: function () { window.enviarFormularioVenta(); }
+                });
+            } else {
+                window.enviarFormularioVenta();
+            }
+        }
+    });
+
+    window.carritoVenta = window.carritoVenta || [];
+
+    window.agregarAlCarrito = function(producto) {
+        const existente = window.carritoVenta.find(item => item.id == producto.id);
         if (existente) {
             existente.cantidad += 1;
         } else {
-            carrito.push({
+            window.carritoVenta.push({
                 id: producto.id,
                 codigo: producto.codigo,
                 nombre: producto.nombre,
@@ -124,24 +167,27 @@
                 cantidad: 1,
             });
         }
+        window.renderCarritoVenta();
+    };
 
-        renderCarrito();
-    }
+    window.quitarDelCarrito = function(id) {
+        const index = window.carritoVenta.findIndex(item => item.id == id);
+        if (index !== -1) window.carritoVenta.splice(index, 1);
+        window.renderCarritoVenta();
+    };
 
-    function quitarDelCarrito(id) {
-        const index = carrito.findIndex(item => item.id === id);
-        if (index !== -1) carrito.splice(index, 1);
-        renderCarrito();
-    }
-
-    function cambiarCantidad(id, nuevaCantidad) {
-        const item = carrito.find(item => item.id === id);
+    window.cambiarCantidad = function(id, nuevaCantidad) {
+        const item = window.carritoVenta.find(item => item.id == id);
         if (item) item.cantidad = Math.max(1, parseInt(nuevaCantidad) || 1);
-        renderCarrito();
-    }
+        window.renderCarritoVenta();
+    };
 
-    function renderCarrito() {
-        if (carrito.length === 0) {
+    window.renderCarritoVenta = function() {
+        const carritoBody = document.getElementById('carritoBody');
+        const ventaTotalEl = document.getElementById('ventaTotal');
+        if (!carritoBody || !ventaTotalEl) return;
+
+        if (window.carritoVenta.length === 0) {
             carritoBody.innerHTML = `
                 <tr id="carritoVacio">
                     <td colspan="5" style="text-align: center; color: var(--muted);">Aún no has agregado productos</td>
@@ -152,11 +198,9 @@
         }
 
         let total = 0;
-
-        carritoBody.innerHTML = carrito.map(item => {
+        carritoBody.innerHTML = window.carritoVenta.map(item => {
             const subtotal = item.precio * item.cantidad;
             total += subtotal;
-
             return `
                 <tr>
                     <td>${item.nombre}</td>
@@ -170,46 +214,25 @@
                 </tr>
             `;
         }).join('');
-
         ventaTotalEl.textContent = '$' + total.toFixed(2);
-    }
+    };
 
-    document.addEventListener('click', function (event) {
-        if (!event.target.closest('.venta-buscador')) {
-            sugerenciasBox.classList.remove('open');
-        }
-    });
+    window.enviarFormularioVenta = function() {
+        const form = document.getElementById('formVenta');
+        window.carritoVenta.forEach((item, index) => {
+            const inputId = document.createElement('input');
+            inputId.type = 'hidden';
+            inputId.name = `items[${index}][producto_id]`;
+            inputId.value = item.id;
+            form.appendChild(inputId);
 
-    document.getElementById('btnConfirmarVenta').addEventListener('click', function () {
-        if (carrito.length === 0) {
-            alert('Agrega al menos un producto antes de confirmar.');
-            return;
-        }
-
-        const boton = this;
-
-        playOrderAnimation(boton, {
-            duration: 2200,
-            onComplete: function () {
-                const form = document.getElementById('formVenta');
-
-                carrito.forEach((item, index) => {
-                    const inputId = document.createElement('input');
-                    inputId.type = 'hidden';
-                    inputId.name = `items[${index}][producto_id]`;
-                    inputId.value = item.id;
-                    form.appendChild(inputId);
-
-                    const inputCant = document.createElement('input');
-                    inputCant.type = 'hidden';
-                    inputCant.name = `items[${index}][cantidad]`;
-                    inputCant.value = item.cantidad;
-                    form.appendChild(inputCant);
-                });
-
-                form.submit();
-            }
+            const inputCant = document.createElement('input');
+            inputCant.type = 'hidden';
+            inputCant.name = `items[${index}][cantidad]`;
+            inputCant.value = item.cantidad;
+            form.appendChild(inputCant);
         });
-    });
+        form.submit();
+    };
 </script>
 @endpush

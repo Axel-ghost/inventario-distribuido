@@ -75,11 +75,11 @@
     </div>
 
     <!-- BOTONES DE ACCIÓN -->
-    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; align-items: center;">
+    <div class="ticket-actions" style="margin-bottom: 32px; justify-content: flex-start;">
         @if (Auth::user()->rol === 'administrador' && $pedido->estado === 'solicitado')
             <form method="POST" action="/pedidos/{{ $pedido->id }}/revisar">
                 @csrf @method('PATCH')
-                <button type="submit" class="btn-process" style="max-width: 200px; height: 44px; border-radius: 8px;">
+                <button type="submit" class="btn-process">
                     <span class="btn-label">Poner en revisión</span>
                 </button>
             </form>
@@ -88,7 +88,7 @@
         @if (Auth::user()->rol === 'administrador' && $pedido->estado === 'en_revision')
             <form method="POST" action="/pedidos/{{ $pedido->id }}/aprobar">
                 @csrf @method('PATCH')
-                <button type="submit" class="btn-process" style="max-width: 160px; height: 44px; border-radius: 8px;">
+                <button type="submit" class="btn-process">
                     <span class="btn-label">Aprobar</span>
                 </button>
             </form>
@@ -99,7 +99,7 @@
                 <input type="text" name="comentario_admin" placeholder="Motivo del rechazo" required
                        style="padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.3); color: #ffffff; font-size: 14px; outline: none;">
                 
-                <button type="submit" class="btn-action" style="padding: 0 16px; border-radius: 8px; font-weight: 600; background: rgba(220, 38, 38, 0.8); color: #ffffff; border: none;">
+                <button type="submit" class="btn-cancel" style="height: 44px; border-color: rgba(220, 38, 38, 0.5); background: rgba(220, 38, 38, 0.2);">
                     Rechazar
                 </button>
             </form>
@@ -108,7 +108,7 @@
         @if (in_array(Auth::user()->rol, ['administrador', 'almacen']) && $pedido->estado === 'aprobado')
             <form method="POST" action="/pedidos/{{ $pedido->id }}/finalizar">
                 @csrf @method('PATCH')
-                <button type="submit" class="btn-process" style="max-width: 260px; height: 44px; border-radius: 8px;">
+                <button type="submit" class="btn-process">
                     <span class="btn-label">Marcar como recibido / Finalizar</span>
                 </button>
             </form>
@@ -117,7 +117,7 @@
 
     <!-- BOTÓN VOLVER -->
     <div>
-        <a href="/pedidos" class="catalog-back-button" style="width: auto; min-width: 200px; display: inline-flex;">
+        <a href="/pedidos" class="catalog-back-button" style="display: inline-flex; width: auto;">
             &larr; Volver a pedidos
         </a>
     </div>

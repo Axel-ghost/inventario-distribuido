@@ -79,9 +79,14 @@
             <img id="vista_previa" alt="Vista previa del producto" style="display:none;max-width:220px;max-height:180px;object-fit:contain;border-radius:12px;margin-top:10px">
         </div>
 
-        <button type="submit" class="btn-process" style="width:100%; padding:18px; margin-top:24px;">
-            Registrar producto
-        </button>
+        <div class="form-actions">
+            <a href="/productos" class="btn-cancel">
+                Cancelar
+            </a>
+            <button type="submit" class="btn-process">
+                Registrar producto
+            </button>
+        </div>
     </form>
 
 @endsection
