@@ -15,6 +15,7 @@ class Producto extends Model
         'imagen_url',
         'descripcion',
         'categoria',
+        'proveedor',
         'precio_compra',
         'precio_venta',
         'existencia',

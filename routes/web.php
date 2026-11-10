@@ -27,7 +27,6 @@ Route::get('/', function () {
     return view('login');
 })->name('inicio');
 
-// 1. Ruta para MOSTRAR el formulario (GET)
 Route::get('/login', function () {
     if (Auth::check()) {
         return redirect(match (Auth::user()->rol) {
@@ -40,7 +39,6 @@ Route::get('/login', function () {
     return view('login');
 })->name('login');
 
-// 2. Ruta para PROCESAR el formulario (POST)
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'usuario' => ['required', 'string'],
@@ -67,7 +65,6 @@ Route::post('/login', function (Request $request) {
     return back()->withErrors(['usuario' => 'Usuario o contraseña incorrectos.']);
 })->name('login.attempt');
 
-// 3. Logout
 Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
@@ -212,10 +209,8 @@ Route::middleware(['auth'])->group(function () {
             ->limit(3)
             ->get();
 
-        // --- OPERACIONES RECIENTES ---
-
-        // 1. Obtener últimas 5 ventas
-        $ventas = Venta::orderByDesc('fecha_venta')->take(5)->get()->map(function ($venta) {
+        // Operaciones recientes: últimas ventas y pedidos, mezcladas por fecha real
+        $ventas = Venta::orderByDesc('fecha_venta')->take(3)->get()->map(function ($venta) {
             return [
                 'tipo' => 'venta',
                 'titulo' => 'Venta registrada (Folio: ' . $venta->folio . ')',
@@ -225,8 +220,7 @@ Route::middleware(['auth'])->group(function () {
             ];
         });
 
-        // 2. Obtener últimos 5 pedidos
-        $pedidos = Pedido::with('solicitante')->orderByDesc('fecha_solicitud')->take(5)->get()->map(function ($pedido) {
+        $pedidos = Pedido::with('solicitante')->orderByDesc('fecha_solicitud')->take(3)->get()->map(function ($pedido) {
             return [
                 'tipo' => 'pedido',
                 'titulo' => 'Pedido ' . ucfirst(str_replace('_', ' ', $pedido->estado)) . ' (Folio: ' . $pedido->folio . ')',
@@ -236,10 +230,9 @@ Route::middleware(['auth'])->group(function () {
             ];
         });
 
-        // 3. Unir, ordenar por fecha real y tomar los 5 más recientes
         $operacionesRecientes = $ventas->concat($pedidos)
             ->sortByDesc('timestamp')
-            ->take(5)
+            ->take(3)
             ->values();
 
         return view('dashboard', compact(
@@ -249,7 +242,7 @@ Route::middleware(['auth'])->group(function () {
             'pedidosPendientes',
             'productosStockBajo',
             'operacionesRecientes'
-        ));
+        ))->with('activePage', 'dashboard');
     });
 
     Route::post('/perfil/foto', function (Request $request) {
@@ -368,7 +361,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/productos', function () {
             $productos = Producto::all();
-            return view('productos', compact('productos'));
+            return view('productos.index', compact('productos'))->with('activePage', 'productos');
         });
 
         Route::get('/inventario', function () {
@@ -377,7 +370,7 @@ Route::middleware(['auth'])->group(function () {
             $agotados = $productos->where('existencia', 0)->count();
             $bajos = $productos->filter(fn ($p) => $p->existencia > 0 && $p->existencia <= $p->stock_minimo)->count();
 
-            return view('inventario', compact('productos', 'agotados', 'bajos'));
+            return view('inventario', compact('productos', 'agotados', 'bajos'))->with('activePage', 'inventario');
         });
     });
 
@@ -394,12 +387,26 @@ Route::middleware(['auth'])->group(function () {
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
                 'categoria' => ['nullable', 'string', 'max:100'],
+                'proveedor' => ['nullable', 'string', 'max:255'],
                 'imagen_url' => ['nullable', 'url', 'max:500'],
+                'imagen_archivo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
                 'stock_minimo' => ['required', 'integer', 'min:0'],
             ]);
+
+            if (! empty($data['categoria'])) {
+                \App\Models\Categoria::firstOrCreate(['nombre' => trim($data['categoria'])]);
+            }
+            if (! empty($data['proveedor'])) {
+                \App\Models\Proveedor::firstOrCreate(['nombre' => trim($data['proveedor'])]);
+            }
+
+            if ($request->hasFile('imagen_archivo')) {
+                $ruta = $request->file('imagen_archivo')->store('productos', 'public');
+                $data['imagen_url'] = asset('storage/' . $ruta);
+            }
 
             $data['activo'] = true;
 
@@ -418,12 +425,31 @@ Route::middleware(['auth'])->group(function () {
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
                 'categoria' => ['nullable', 'string', 'max:100'],
+                'proveedor' => ['nullable', 'string', 'max:255'],
                 'imagen_url' => ['nullable', 'url', 'max:500'],
+                'imagen_archivo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
+                'eliminar_imagen' => ['nullable', 'boolean'],
                 'precio_compra' => ['required', 'numeric', 'min:0'],
                 'precio_venta' => ['required', 'numeric', 'min:0'],
                 'existencia' => ['required', 'integer', 'min:0'],
                 'stock_minimo' => ['required', 'integer', 'min:0'],
             ]);
+
+            if (! empty($data['categoria'])) {
+                \App\Models\Categoria::firstOrCreate(['nombre' => trim($data['categoria'])]);
+            }
+            if (! empty($data['proveedor'])) {
+                \App\Models\Proveedor::firstOrCreate(['nombre' => trim($data['proveedor'])]);
+            }
+
+            if ($request->has('eliminar_imagen') && $request->eliminar_imagen == 1) {
+                $data['imagen_url'] = null;
+            }
+
+            if ($request->hasFile('imagen_archivo')) {
+                $ruta = $request->file('imagen_archivo')->store('productos', 'public');
+                $data['imagen_url'] = asset('storage/' . $ruta);
+            }
 
             $producto->update($data);
 
@@ -453,7 +479,7 @@ Route::middleware(['auth'])->group(function () {
 
             $pedidos = $query->get();
 
-            return view('pedidos.index', compact('pedidos'));
+            return view('pedidos.index', compact('pedidos'))->with('activePage', 'pedidos');
         });
 
         Route::get('/pedidos/crear', function (Request $request) {
@@ -637,7 +663,7 @@ Route::middleware(['auth'])->group(function () {
                 ->orderByDesc('fecha_venta')
                 ->get();
 
-            return view('ventas', compact('ventas'));
+            return view('ventas.index', compact('ventas'))->with('activePage', 'ventas');
         });
 
         Route::get('/ventas/{venta}', function (Venta $venta) {
@@ -691,7 +717,7 @@ Route::middleware(['auth'])->group(function () {
                 'inversion', 'valorVenta', 'gananciaPotencial', 'unidades',
                 'ventas', 'totalVendido', 'costoVendido', 'gananciaRealizada',
                 'stockMuerto', 'capitalInmovilizado'
-            ));
+            ))->with('activePage', 'contabilidad');
         });
     });
 
@@ -724,13 +750,13 @@ Route::middleware(['auth'])->group(function () {
 
             $agencias = Agencia::withCount('usuarios')->orderBy('nombre')->get();
 
-            return view('agencias.index', compact('agencias'));
+            return view('agencias.index', compact('agencias'))->with('activePage', 'agencias');
         });
 
         Route::get('/agencias/crear', function () {
             abort_unless(Auth::user()->agencia_id === null, 403);
 
-            return view('agencias.crear');
+            return view('agencias.crear')->with('activePage', 'agencias');
         });
 
         Route::post('/agencias', function (Request $request) {
@@ -756,7 +782,7 @@ Route::middleware(['auth'])->group(function () {
                 ->orderBy('name')
                 ->get();
 
-            return view('usuarios.index', compact('usuarios'));
+            return view('usuarios.index', compact('usuarios'))->with('activePage', 'usuarios');
         });
 
         Route::get('/usuarios/crear', function () {
@@ -764,7 +790,7 @@ Route::middleware(['auth'])->group(function () {
                 ? Agencia::where('activo', true)->orderBy('nombre')->get()
                 : collect();
 
-            return view('usuarios.crear', compact('agencias'));
+            return view('usuarios.crear', compact('agencias'))->with('activePage', 'usuarios');
         });
 
         Route::post('/usuarios', function (Request $request) {
@@ -801,7 +827,7 @@ Route::middleware(['auth'])->group(function () {
                 ? Agencia::orderBy('nombre')->get()
                 : collect();
 
-            return view('usuarios.editar', compact('usuario', 'agencias'));
+            return view('usuarios.editar', compact('usuario', 'agencias'))->with('activePage', 'usuarios');
         });
 
         Route::put('/usuarios/{usuario}', function (Request $request, User $usuario) {

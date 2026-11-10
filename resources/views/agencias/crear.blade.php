@@ -1,61 +1,37 @@
-<!DOCTYPE html>
-<html lang="es">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreBuild | Nueva agencia</title>
-    @vite(['resources/css/app.css'])
-</head>
+@section('title', 'Nueva agencia')
 
-<body>
+@section('header_title', 'Nueva agencia')
+@section('header_subtitle', 'Registra una sucursal con sus propios datos')
 
-    <div class="dashboard">
+@section('content')
 
-        <x-sidebar active-page="agencias" />
+    @if ($errors->any())
+        <div style="color: #ef4444; margin-bottom: 16px;">
+            @foreach ($errors->all() as $error)
+                <p>{{ $error }}</p>
+            @endforeach
+        </div>
+    @endif
 
-        <main class="dashboard-content">
+    <form method="POST" action="/agencias" class="form-card">
+        @csrf
 
-            <header class="dashboard-header">
-                <div>
-                    <h2>Nueva agencia</h2>
-                    <p>Registra una sucursal con sus propios datos</p>
-                </div>
+        <div class="input-group">
+            <label for="nombre">Nombre de la agencia</label>
+            <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" required>
+        </div>
 
-                <x-profile-card />
-            </header>
+        <div class="input-group">
+            <label for="ciudad">Ciudad</label>
+            <input type="text" id="ciudad" name="ciudad" value="{{ old('ciudad') }}">
+        </div>
 
-            @if ($errors->any())
-                <div style="color: #ef4444; margin-bottom: 16px;">
-                    @foreach ($errors->all() as $error)
-                        <p>{{ $error }}</p>
-                    @endforeach
-                </div>
-            @endif
+        <button type="submit" class="btn-process">
+            <span class="btn-label">Registrar agencia</span>
+        </button>
 
-            <form method="POST" action="/agencias" class="form-card">
-                @csrf
+    </form>
 
-                <div class="input-group">
-                    <label for="nombre">Nombre de la agencia</label>
-                    <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="ciudad">Ciudad</label>
-                    <input type="text" id="ciudad" name="ciudad" value="{{ old('ciudad') }}">
-                </div>
-
-                <button type="submit" class="btn-process">
-                    <span class="btn-label">Registrar agencia</span>
-                </button>
-
-            </form>
-
-        </main>
-
-    </div>
-
-</body>
-
-</html>
+@endsection

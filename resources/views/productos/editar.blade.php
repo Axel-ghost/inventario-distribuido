@@ -1,154 +1,125 @@
-<!DOCTYPE html>
-<html lang="es">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreBuild | Editar producto</title>
-    @vite(['resources/css/app.css'])
-</head>
+@section('title', 'Editar producto')
 
-<body>
+@section('header_title', 'Editar producto')
+@section('header_subtitle', 'Modifica los datos del producto')
 
-    <div class="dashboard">
+@section('content')
 
-        <x-sidebar active-page="productos" />
-
-        <main class="dashboard-content">
-
-            <header class="dashboard-header">
-                <div>
-                    <h2>Editar producto</h2>
-                    <p>{{ $producto->codigo }} — {{ $producto->nombre }}</p>
-                </div>
-
-                <x-profile-card />
-            </header>
-
-            @if ($errors->any())
-                <div style="color: #ef4444; margin-bottom: 16px;">
-                    @foreach ($errors->all() as $error)
-                        <p>{{ $error }}</p>
-                    @endforeach
-                </div>
-            @endif
-
-            <form method="POST" enctype="multipart/form-data" action="/productos/{{ $producto->id }}" class="form-card">
-                @csrf
-                @method('PUT')
-
-                <div class="input-group">
-                    <label for="codigo">Código</label>
-                    <input type="text" id="codigo" name="codigo" value="{{ old('codigo', $producto->codigo) }}" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre" name="nombre" value="{{ old('nombre', $producto->nombre) }}" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="categoria">Categoría</label>
-                    <input type="text" id="categoria" name="categoria" value="{{ old('categoria', $producto->categoria) }}">
-                </div>
-
-                <div class="input-group">
-                    <label for="descripcion">Descripción</label>
-                    <input type="text" id="descripcion" name="descripcion" value="{{ old('descripcion', $producto->descripcion) }}">
-                </div>
-
-                <div class="input-group">
-                    <label for="precio_compra">Precio de compra</label>
-                    <input type="number" step="0.01" min="0" id="precio_compra" name="precio_compra" value="{{ old('precio_compra', $producto->precio_compra) }}" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="precio_venta">Precio de venta</label>
-                    <input type="number" step="0.01" min="0" id="precio_venta" name="precio_venta" value="{{ old('precio_venta', $producto->precio_venta) }}" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="existencia">Existencia</label>
-                    <input type="number" min="0" id="existencia" name="existencia" value="{{ old('existencia', $producto->existencia) }}" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="stock_minimo">Stock mínimo</label>
-                    <input type="number" min="0" id="stock_minimo" name="stock_minimo" value="{{ old('stock_minimo', $producto->stock_minimo) }}" required>
-                </div>
-
-                <div class="input-group">
-    <label>Imagen actual</label>
-    @if ($producto->imagen_url)
-        <img src="{{ $producto->imagen_url }}"
-             alt="Imagen actual"
-             style="display:block;max-width:220px;max-height:180px;object-fit:contain;border-radius:12px;margin:10px 0">
-    @else
-        <p>Este producto no tiene fotografía.</p>
+    @if ($errors->any())
+        <div style="color: #ef4444; margin-bottom: 16px;">
+            @foreach ($errors->all() as $error)
+                <p>{{ $error }}</p>
+            @endforeach
+        </div>
     @endif
-</div>
 
-<div class="input-group">
-    <label>
-        <input type="checkbox" id="eliminar_imagen" name="eliminar_imagen" value="1">
-        Eliminar fotografía actual
-    </label>
-</div>
-<div class="input-group" style="margin-top:20px">
-    <label for="imagen_archivo">Fotografía desde mi equipo</label>
-    <input type="file"
-           id="imagen_archivo"
-           name="imagen_archivo"
-           accept="image/jpeg,image/png,image/webp">
-    <small>JPG, PNG o WEBP. Máximo 2 MB.</small>
-</div>
+    <!-- OJO: La acción apunta a /productos/{id} y el método es PUT -->
+    <form method="POST" enctype="multipart/form-data" action="/productos/{{ $producto->id }}" class="form-card">
+        @csrf
+        @method('PUT')
 
-<div class="input-group">
-    <label for="imagen_url">O utilizar una imagen de Internet</label>
-    <input type="url"
-           id="imagen_url"
-           name="imagen_url"
-           placeholder="https://ejemplo.com/imagen.jpg"
-           value="{{ old('imagen_url') }}">
-</div>
+        <div class="input-group">
+            <label for="codigo">Código</label>
+            <input type="text" id="codigo" name="codigo" value="{{ old('codigo', $producto->codigo) }}" required>
+        </div>
 
-<div class="input-group">
-    <label>Vista previa</label>
-    <img id="vista_previa"
-         alt="Vista previa del producto"
-         style="display:none;max-width:220px;max-height:180px;object-fit:contain;border-radius:12px;margin-top:10px">
-</div>
+        <div class="input-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" value="{{ old('nombre', $producto->nombre) }}" required>
+        </div>
 
+        <div class="input-group">
+            <label for="categoria">Categoría</label>
+            <input type="text" id="categoria" name="categoria" value="{{ old('categoria', $producto->categoria) }}" placeholder="Ej. Tarjetas gráficas">
+        </div>
 
-            
-    <button type="submit"
-            class="btn-process"
-            style="display:block;
-                   width:100%;
-                   padding:18px;
-                   margin-top:24px;
-                   background:#60d5f8;
-                   color:#10151c;
-                   border:none;
-                   border-radius:12px;
-                   font-size:16px;
-                   font-weight:bold;
-                   cursor:pointer;">
-        Guardar cambios
-    </button>
+        <div class="input-group">
+            <label for="proveedor">Proveedor</label>
+            <input type="text" id="proveedor" name="proveedor" value="{{ old('proveedor', $producto->proveedor) }}" placeholder="Ej. TechSupply">
+        </div>
 
-</form>
+        <div class="input-group">
+            <label for="descripcion">Descripción</label>
+            <input type="text" id="descripcion" name="descripcion" value="{{ old('descripcion', $producto->descripcion) }}">
+        </div>
 
-        </main>
+        <div class="input-group">
+            <label for="precio_compra">Precio de compra</label>
+            <input type="number" step="0.01" min="0" id="precio_compra" name="precio_compra" value="{{ old('precio_compra', $producto->precio_compra) }}" required>
+        </div>
 
-    </div>
+        <div class="input-group">
+            <label for="precio_venta">Precio de venta</label>
+            <input type="number" step="0.01" min="0" id="precio_venta" name="precio_venta" value="{{ old('precio_venta', $producto->precio_venta) }}" required>
+        </div>
 
+        <div class="input-group">
+            <label for="existencia">Existencia actual</label>
+            <input type="number" min="0" id="existencia" name="existencia" value="{{ old('existencia', $producto->existencia) }}" required>
+        </div>
+
+        <div class="input-group">
+            <label for="stock_minimo">Stock mínimo</label>
+            <input type="number" min="0" id="stock_minimo" name="stock_minimo" value="{{ old('stock_minimo', $producto->stock_minimo) }}" required>
+        </div>
+
+        <!-- Aquí mostramos la imagen actual si es que tiene -->
+        @if ($producto->imagen_url)
+            <div class="input-group">
+                <label>Imagen actual</label>
+                <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                    <img src="{{ $producto->imagen_url }}" alt="Imagen actual" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                    
+                    <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: #f87171; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); margin-bottom: 0;">
+                        <input type="checkbox" name="eliminar_imagen" value="1" style="width: 16px; height: 16px; accent-color: #ef4444;">
+                        Eliminar imagen actual
+                    </label>
+                </div>
+            </div>
+        @endif
+
+        <div class="input-group" style="margin-top:20px">
+            <label for="imagen_archivo">Subir nueva fotografía</label>
+            <input type="file" id="imagen_archivo" name="imagen_archivo" accept="image/jpeg,image/png,image/webp">
+            <small>JPG, PNG o WEBP. Máximo 2 MB.</small>
+        </div>
+
+        <div class="input-group">
+            <label for="imagen_url">O utilizar una imagen de Internet</label>
+            <input type="url" id="imagen_url" name="imagen_url" placeholder="https://ejemplo.com/imagen.jpg" value="{{ old('imagen_url', $producto->imagen_url) }}">
+        </div>
+
+        <div class="input-group">
+            <label>Vista previa</label>
+            <img id="vista_previa" alt="Vista previa del producto" style="display:none;max-width:220px;max-height:180px;object-fit:contain;border-radius:12px;margin-top:10px">
+        </div>
+
+        <div class="form-actions">
+            <a href="/productos" class="btn-cancel">
+                Cancelar
+            </a>
+            <button type="submit" class="btn-process">
+                Guardar cambios
+            </button>
+        </div>
+    </form>
+
+@endsection
+
+@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const archivo = document.getElementById('imagen_archivo');
     const url = document.getElementById('imagen_url');
     const previa = document.getElementById('vista_previa');
-    const eliminar = document.getElementById('eliminar_imagen');
+
+    // Si ya hay una imagen actual, mostrarla en la vista previa
+    @if ($producto->imagen_url)
+        previa.src = "{{ $producto->imagen_url }}";
+        previa.style.display = 'block';
+    @endif
 
     function mostrar(src) {
         if (!src) {
@@ -164,16 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const foto = archivo.files[0];
         if (!foto) return;
 
-        if (!['image/jpeg','image/png','image/webp'].includes(foto.type) ||
-            foto.size > 2 * 1024 * 1024) {
+        if (!['image/jpeg','image/png','image/webp'].includes(foto.type) || foto.size > 2 * 1024 * 1024) {
             alert('Selecciona una imagen JPG, PNG o WEBP de máximo 2 MB.');
             archivo.value = '';
             return;
         }
 
         url.value = '';
-        if (eliminar) eliminar.checked = false;
-
         const lector = new FileReader();
         lector.onload = e => mostrar(e.target.result);
         lector.readAsDataURL(foto);
@@ -182,30 +150,13 @@ document.addEventListener('DOMContentLoaded', () => {
     url.addEventListener('input', () => {
         if (url.value.trim()) {
             archivo.value = '';
-            if (eliminar) eliminar.checked = false;
             mostrar(url.value.trim());
         } else {
             mostrar('');
         }
     });
 
-    if (eliminar) {
-        eliminar.addEventListener('change', () => {
-            if (eliminar.checked) {
-                archivo.value = '';
-                url.value = '';
-                mostrar('');
-            } else {
-                mostrar(previa.dataset.original || '');
-            }
-        });
-    }
-
-    previa.addEventListener('error', () => {
-        previa.style.display = 'none';
-    });
+    previa.addEventListener('error', () => previa.style.display = 'none');
 });
 </script>
-</body>
-
-</html>
+@endpush

@@ -1,96 +1,96 @@
-<!DOCTYPE html>
-<html lang="es">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreBuild | Inventario</title>
-    @vite(['resources/css/app.css'])
-</head>
+@section('title', 'Inventario')
 
-<body>
+@section('header_title', 'Inventario')
+@section('header_subtitle', 'Existencia actual y alertas de stock')
 
-    <div class="dashboard">
+@section('content')
 
-        <x-sidebar active-page="inventario" />
-
-        <main class="dashboard-content">
-
-            <header class="dashboard-header">
-                <div>
-                    <h2>Inventario</h2>
-                    <p>Existencia actual y alertas de stock</p>
-                </div>
-
-                <x-profile-card />
-            </header>
-
-            @if (session('status'))
-                <p style="color: #22c55e; margin-bottom: 16px;">{{ session('status') }}</p>
-            @endif
-
-            <div class="dashboard-grid" style="margin-bottom: 24px;">
-
-                <div class="stat-card">
-                    <span>Productos agotados</span>
-                    <h3 style="color: #ef4444;">{{ $agotados }}</h3>
-                </div>
-
-                <div class="stat-card">
-                    <span>Stock bajo</span>
-                    <h3 style="color: #f59e0b;">{{ $bajos }}</h3>
-                </div>
-
-                <div class="stat-card">
-                    <span>Total de productos</span>
-                    <h3>{{ $productos->count() }}</h3>
-                </div>
-
+    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px;">
+        
+        <div class="stat-card">
+            <div class="stat-info">
+                <span>Productos agotados</span>
+                <strong style="color: #dc2626;">{{ $agotados }}</strong>
             </div>
+        </div>
 
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre</th>
-                        <th>Categoría</th>
-                        <th>Existencia</th>
-                        <th>Stock mínimo</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($productos as $producto)
-                        <tr>
-                            <td>{{ $producto->codigo }}</td>
-                            <td>{{ $producto->nombre }}</td>
-                            <td>{{ $producto->categoria }}</td>
-                            <td>{{ $producto->existencia }}</td>
-                            <td>{{ $producto->stock_minimo }}</td>
-                            <td>
-                                @if ($producto->existencia == 0)
-                                    <span class="badge badge-danger">Agotado</span>
-                                    @if (Auth::user()->rol === 'almacen')
-                                        <a href="/pedidos/crear?producto_id={{ $producto->id }}" style="color: var(--accent); font-size: 12px; display: block; margin-top: 4px;">Solicitar reabasto</a>
-                                    @endif
-                                @elseif ($producto->existencia <= $producto->stock_minimo)
-                                    <span class="badge badge-warning">Bajo</span>
-                                    @if (Auth::user()->rol === 'almacen')
-                                        <a href="/pedidos/crear?producto_id={{ $producto->id }}" style="color: var(--accent); font-size: 12px; display: block; margin-top: 4px;">Solicitar reabasto</a>
-                                    @endif
-                                @else
-                                    <span class="badge badge-ok">Óptimo</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div class="stat-card">
+            <div class="stat-info">
+                <span>Stock bajo</span>
+                <strong style="color: #d97706;">{{ $bajos }}</strong>
+            </div>
+        </div>
 
-        </main>
+        <div class="stat-card">
+            <div class="stat-info">
+                <span>Total de productos</span>
+                <strong>{{ $productos->count() }}</strong>
+            </div>
+        </div>
 
     </div>
 
-</body>
+    <div class="table-container">
+        <table class="data-table-clean">
+            <thead>
+                <tr>
+                    <th>CÓDIGO</th>
+                    <th>NOMBRE</th>
+                    <th>CATEGORÍA</th>
+                    <th>EXISTENCIA</th>
+                    <th>STOCK MÍNIMO</th>
+                    <th>ESTADO</th>
+                    
+                    @if (Auth::user()->rol === 'almacen')
+                        <th>ACCIONES</th>
+                    @endif
+                    
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($productos as $producto)
+                    <tr>
+                        <td>{{ $producto->codigo }}</td>
+                        <td>{{ $producto->nombre }}</td>
+                        <td>{{ $producto->categoria ?? 'Sin categoría' }}</td>
+                        <td>{{ $producto->existencia }}</td>
+                        <td>{{ $producto->stock_minimo }}</td>
+                        
+                        <td>
+                            @if ($producto->existencia == 0)
+                                <span class="status-badge status-danger">Agotado</span>
+                            @elseif ($producto->existencia <= $producto->stock_minimo)
+                                <span class="status-badge status-warning">Bajo</span>
+                            @else
+                                <span class="status-badge status-success">Óptimo</span>
+                            @endif
+                        </td>
 
-</html>
+                        @if (Auth::user()->rol === 'almacen')
+                            <td>
+                                @if ($producto->existencia <= $producto->stock_minimo)
+                                    <!-- Botón de acción con el mismo estilo de iconos -->
+                                    <a href="/pedidos/crear?producto_id={{ $producto->id }}" class="btn-action btn-reabasto" title="Solicitar reabasto">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                        </svg>
+                                    </a>
+                                @endif
+                            </td>
+                        @endif
+                        
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="{{ Auth::user()->rol === 'almacen' ? 7 : 6 }}" style="text-align: center; padding: 30px; color: var(--muted);">
+                            No hay productos en el inventario.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+@endsection

@@ -5,7 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoreBuild | Nueva requisición</title>
-    @vite(['resources/css/app.css'])
+    
+    @vite(['resources/css/app.css', 'resources/css/dark.css', 'resources/js/app.js'])
+
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 
 <body>
@@ -28,24 +38,26 @@
             <div class="venta-layout">
 
                 <div class="venta-buscador">
-                    <input type="text" id="buscarProducto" placeholder="Busca por nombre o código..." autocomplete="off">
+                    <input type="text" id="buscarProducto" placeholder="🔎︎ Busca por nombre o código..." autocomplete="off">
                     <div id="sugerencias" class="venta-sugerencias"></div>
                 </div>
 
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Cantidad solicitada</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="carritoBody">
-                        <tr id="carritoVacio">
-                            <td colspan="3" style="text-align: center; color: var(--muted);">Aún no has agregado productos</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table class="data-table-clean">
+                        <thead>
+                            <tr>
+                                <th>PRODUCTO</th>
+                                <th>CANTIDAD SOLICITADA</th>
+                                <th style="width: 100px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="carritoBody">
+                            <tr id="carritoVacio">
+                                <td colspan="3" style="text-align: center; padding: 30px; color: var(--muted);">Aún no has agregado productos</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
                 <form id="formPedido" method="POST" action="/pedidos">
                     @csrf

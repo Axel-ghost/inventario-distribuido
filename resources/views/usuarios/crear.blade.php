@@ -1,104 +1,80 @@
-<!DOCTYPE html>
-<html lang="es">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreBuild | Nuevo usuario</title>
-    @vite(['resources/css/app.css'])
-</head>
+@section('title', 'Nuevo usuario')
 
-<body>
+@section('header_title', 'Nuevo usuario')
+@section('header_subtitle', 'Registra un usuario y asígnale un rol')
 
-    <div class="dashboard">
+@section('content')
 
-        <x-sidebar active-page="usuarios" />
+    @if ($errors->any())
+        <div style="color: #ef4444; margin-bottom: 16px;">
+            @foreach ($errors->all() as $error)
+                <p>{{ $error }}</p>
+            @endforeach
+        </div>
+    @endif
 
-        <main class="dashboard-content">
+    <form method="POST" action="/usuarios" class="form-card">
+        @csrf
 
-            <header class="dashboard-header">
-                <div>
-                    <h2>Nuevo usuario</h2>
-                    <p>Registra un usuario y asígnale un rol</p>
-                </div>
+        <div class="input-group">
+            <label for="name">Nombre</label>
+            <input type="text" id="name" name="name" value="{{ old('name') }}" required>
+        </div>
 
-                <x-profile-card />
-            </header>
+        <div class="input-group">
+            <label for="apellidos">Apellidos</label>
+            <input type="text" id="apellidos" name="apellidos" value="{{ old('apellidos') }}" required>
+        </div>
 
-            @if ($errors->any())
-                <div style="color: #ef4444; margin-bottom: 16px;">
-                    @foreach ($errors->all() as $error)
-                        <p>{{ $error }}</p>
+        <div class="input-group">
+            <label for="usuario">Usuario</label>
+            <input type="text" id="usuario" name="usuario" value="{{ old('usuario') }}" required>
+        </div>
+
+        <div class="input-group">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" value="{{ old('email') }}" required>
+        </div>
+
+        <div class="input-group">
+            <label for="password">Contraseña (mínimo 8 caracteres)</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <div class="input-group">
+            <label for="rol">Rol</label>
+            <select id="rol" name="rol" required>
+                <option value="administrador" @selected(old('rol') === 'administrador')>Administrador</option>
+                <option value="vendedor" @selected(old('rol') === 'vendedor')>Vendedor</option>
+                <option value="caja" @selected(old('rol') === 'caja')>Caja</option>
+                <option value="almacen" @selected(old('rol') === 'almacen')>Almacén</option>
+                <option value="contabilidad" @selected(old('rol') === 'contabilidad')>Contabilidad</option>
+            </select>
+        </div>
+
+        @if (Auth::user()->agencia_id === null)
+            <div class="input-group">
+                <label for="agencia_id">Agencia</label>
+                <select id="agencia_id" name="agencia_id">
+                    <option value="">Todas las agencias (solo para administrador dueño)</option>
+                    @foreach ($agencias as $agencia)
+                        <option value="{{ $agencia->id }}" @selected((string) old('agencia_id') === (string) $agencia->id)>{{ $agencia->nombre }}</option>
                     @endforeach
-                </div>
-            @endif
+                </select>
+            </div>
+        @else
+            <div class="input-group">
+                <label>Agencia</label>
+                <input type="text" value="{{ Auth::user()->agencia?->nombre }}" disabled>
+            </div>
+        @endif
 
-            <form method="POST" action="/usuarios" class="form-card">
-                @csrf
+        <button type="submit" class="btn-process">
+            <span class="btn-label">Registrar usuario</span>
+        </button>
 
-                <div class="input-group">
-                    <label for="name">Nombre</label>
-                    <input type="text" id="name" name="name" value="{{ old('name') }}" required>
-                </div>
+    </form>
 
-                <div class="input-group">
-                    <label for="apellidos">Apellidos</label>
-                    <input type="text" id="apellidos" name="apellidos" value="{{ old('apellidos') }}" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="usuario">Usuario</label>
-                    <input type="text" id="usuario" name="usuario" value="{{ old('usuario') }}" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="email">Correo electrónico</label>
-                    <input type="email" id="email" name="email" value="{{ old('email') }}" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="password">Contraseña (mínimo 8 caracteres)</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="rol">Rol</label>
-                    <select id="rol" name="rol" required>
-                        <option value="administrador" @selected(old('rol') === 'administrador')>Administrador</option>
-                        <option value="vendedor" @selected(old('rol') === 'vendedor')>Vendedor</option>
-                        <option value="caja" @selected(old('rol') === 'caja')>Caja</option>
-                        <option value="almacen" @selected(old('rol') === 'almacen')>Almacén</option>
-                        <option value="contabilidad" @selected(old('rol') === 'contabilidad')>Contabilidad</option>
-                    </select>
-                </div>
-
-                @if (Auth::user()->agencia_id === null)
-                    <div class="input-group">
-                        <label for="agencia_id">Agencia</label>
-                        <select id="agencia_id" name="agencia_id">
-                            <option value="">Todas las agencias (solo para administrador dueño)</option>
-                            @foreach ($agencias as $agencia)
-                                <option value="{{ $agencia->id }}" @selected((string) old('agencia_id') === (string) $agencia->id)>{{ $agencia->nombre }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @else
-                    <div class="input-group">
-                        <label>Agencia</label>
-                        <input type="text" value="{{ Auth::user()->agencia?->nombre }}" disabled>
-                    </div>
-                @endif
-
-                <button type="submit" class="btn-process">
-                    <span class="btn-label">Registrar usuario</span>
-                </button>
-
-            </form>
-
-        </main>
-
-    </div>
-
-</body>
-
-</html>
+@endsection
