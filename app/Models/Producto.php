@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PerteneceAAgencia;
 use Illuminate\Database\Eloquent\Model;
 
 class Producto extends Model
 {
+    use PerteneceAAgencia;
+
     protected $fillable = [
         'codigo',
         'nombre',
@@ -17,6 +20,7 @@ class Producto extends Model
         'existencia',
         'stock_minimo',
         'activo',
+        'agencia_id',
     ];
 
     protected $casts = [

@@ -68,8 +68,26 @@
                         <option value="vendedor" @selected(old('rol') === 'vendedor')>Vendedor</option>
                         <option value="caja" @selected(old('rol') === 'caja')>Caja</option>
                         <option value="almacen" @selected(old('rol') === 'almacen')>Almacén</option>
+                        <option value="contabilidad" @selected(old('rol') === 'contabilidad')>Contabilidad</option>
                     </select>
                 </div>
+
+                @if (Auth::user()->agencia_id === null)
+                    <div class="input-group">
+                        <label for="agencia_id">Agencia</label>
+                        <select id="agencia_id" name="agencia_id">
+                            <option value="">Todas las agencias (solo para administrador dueño)</option>
+                            @foreach ($agencias as $agencia)
+                                <option value="{{ $agencia->id }}" @selected((string) old('agencia_id') === (string) $agencia->id)>{{ $agencia->nombre }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @else
+                    <div class="input-group">
+                        <label>Agencia</label>
+                        <input type="text" value="{{ Auth::user()->agencia?->nombre }}" disabled>
+                    </div>
+                @endif
 
                 <button type="submit" class="btn-process">
                     <span class="btn-label">Registrar usuario</span>

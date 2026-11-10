@@ -69,8 +69,33 @@
                         <option value="vendedor" @selected(old('rol', $usuario->rol) === 'vendedor')>Vendedor</option>
                         <option value="caja" @selected(old('rol', $usuario->rol) === 'caja')>Caja</option>
                         <option value="almacen" @selected(old('rol', $usuario->rol) === 'almacen')>Almacén</option>
+                        <option value="contabilidad" @selected(old('rol', $usuario->rol) === 'contabilidad')>Contabilidad</option>
+                        @if ($usuario->rol === 'cliente')
+                            <option value="cliente" selected>Cliente</option>
+                        @endif
                     </select>
                 </div>
+
+                @if (Auth::user()->agencia_id === null)
+                    <div class="input-group">
+                        <label for="agencia_id">Agencia</label>
+                        <select id="agencia_id" name="agencia_id" @disabled(Auth::id() === $usuario->id)>
+                            <option value="">Todas las agencias (solo para administrador dueño)</option>
+                            @foreach ($agencias as $agencia)
+                                <option value="{{ $agencia->id }}" @selected((string) old('agencia_id', $usuario->agencia_id) === (string) $agencia->id)>{{ $agencia->nombre }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @else
+                    <div class="input-group">
+                        <label>Agencia</label>
+                        <input type="text" value="{{ $usuario->agencia?->nombre ?? '—' }}" disabled>
+                    </div>
+                @endif
+
+                @if (Auth::id() === $usuario->id)
+                    <p style="color: var(--muted); margin-bottom: 16px;">No puedes cambiar tu propio rol ni tu agencia.</p>
+                @endif
 
                 <button type="submit" class="btn-process">
                     <span class="btn-label">Guardar cambios</span>

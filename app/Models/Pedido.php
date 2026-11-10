@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PerteneceAAgencia;
 use Illuminate\Database\Eloquent\Model;
 
 class Pedido extends Model
 {
+    use PerteneceAAgencia;
+
     protected $fillable = [
         'folio',
         'solicitante_id',
@@ -14,6 +17,7 @@ class Pedido extends Model
         'comentario_admin',
         'fecha_solicitud',
         'fecha_resolucion',
+        'agencia_id',
     ];
 
     protected $casts = [

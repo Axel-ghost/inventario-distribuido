@@ -44,17 +44,30 @@
                         <th>Usuario</th>
                         <th>Correo</th>
                         <th>Rol</th>
+                        <th>Agencia</th>
                         <th>Estado</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($usuarios as $u)
+                        @php
+                            if ($u->agencia) {
+                                $textoAgencia = $u->agencia->nombre;
+                            } elseif ($u->rol === 'cliente') {
+                                $textoAgencia = 'Cliente en línea';
+                            } elseif ($u->rol === 'administrador') {
+                                $textoAgencia = 'Todas (dueño)';
+                            } else {
+                                $textoAgencia = 'Sin agencia';
+                            }
+                        @endphp
                         <tr>
                             <td>{{ $u->name }} {{ $u->apellidos }}</td>
                             <td>{{ $u->usuario }}</td>
                             <td>{{ $u->email }}</td>
                             <td>{{ ucfirst($u->rol) }}</td>
+                            <td @if ($textoAgencia === 'Sin agencia') style="color: #f87171;" @endif>{{ $textoAgencia }}</td>
                             <td>
                                 @if ($u->activo)
                                     <span class="badge badge-ok">Activo</span>
@@ -63,21 +76,21 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="/usuarios/{{ $u->id }}/editar" class="venta-quitar" style="color: var(--accent); text-decoration: none; margin-right: 12px;">\
+                                <a href="/usuarios/{{ $u->id }}/editar" class="venta-quitar" style="color: var(--accent); text-decoration: none; margin-right: 12px;">
                                     Editar
                                 </a>
 
-                            @if ($u->id !== Auth::id())
-                            <form method="POST" action="/usuarios/{{ $u->id }}/estado" style="display: inline;">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="venta-quitar" style="color: var(--accent);">
-                                {{ $u->activo ? 'Desactivar' : 'Activar' }}
-                            </button>
-                        </form>
-                    @endif
-                    </td>
-                    </tr>
+                                @if ($u->id !== Auth::id())
+                                    <form method="POST" action="/usuarios/{{ $u->id }}/estado" style="display: inline;">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="venta-quitar" style="color: var(--accent);">
+                                            {{ $u->activo ? 'Desactivar' : 'Activar' }}
+                                        </button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>

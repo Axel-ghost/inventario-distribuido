@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PerteneceAAgencia;
 use Illuminate\Database\Eloquent\Model;
 
 class Venta extends Model
 {
-    protected $fillable = ['folio', 'usuario_id', 'total', 'fecha_venta'];
+    use PerteneceAAgencia;
+
+    protected $fillable = ['folio', 'usuario_id', 'total', 'fecha_venta', 'agencia_id'];
 
     protected $casts = ['fecha_venta' => 'datetime'];
 

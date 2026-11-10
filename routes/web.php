@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Agencia;
 use App\Models\DetallePedido;
 use App\Models\DetalleVenta;
 use App\Models\Pedido;
@@ -12,21 +13,30 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 Route::get('/', function () {
     if (Auth::check()) {
-        return redirect(Auth::user()->rol === 'cliente' ? '/tienda' : '/dashboard');
+        return redirect(match (Auth::user()->rol) {
+            'cliente' => '/tienda',
+            'contabilidad' => '/contabilidad',
+            default => '/dashboard',
+        });
     }
 
     return view('login');
-})->name('inicio'); // Nota: le cambié el nombre a 'inicio' para no chocar con la ruta /login
+})->name('inicio');
 
 // 1. Ruta para MOSTRAR el formulario (GET)
 Route::get('/login', function () {
     if (Auth::check()) {
-        $destinoDefault = Auth::user()->rol === 'cliente' ? '/tienda' : '/dashboard';
-        return redirect($destinoDefault);
+        return redirect(match (Auth::user()->rol) {
+            'cliente' => '/tienda',
+            'contabilidad' => '/contabilidad',
+            default => '/dashboard',
+        });
     }
+
     return view('login');
 })->name('login');
 
@@ -40,13 +50,16 @@ Route::post('/login', function (Request $request) {
     if (Auth::attempt(['usuario' => $credentials['usuario'], 'password' => $credentials['password']])) {
         $request->session()->regenerate();
 
-        // ✅ CORREGIDO AQUÍ: Ahora usa 'activo' que es el nombre real de tu columna
-        if (! Auth::user()->activo) { 
+        if (! Auth::user()->activo) {
             Auth::logout();
             return back()->withErrors(['usuario' => 'Tu cuenta está desactivada.']);
         }
 
-        $destinoDefault = Auth::user()->rol === 'cliente' ? '/tienda' : '/dashboard';
+        $destinoDefault = match (Auth::user()->rol) {
+            'cliente' => '/tienda',
+            'contabilidad' => '/contabilidad',
+            default => '/dashboard',
+        };
 
         return redirect()->intended($destinoDefault);
     }
@@ -54,7 +67,7 @@ Route::post('/login', function (Request $request) {
     return back()->withErrors(['usuario' => 'Usuario o contraseña incorrectos.']);
 })->name('login.attempt');
 
-// 3. Tu ruta de logout
+// 3. Logout
 Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
@@ -180,6 +193,10 @@ Route::middleware(['auth'])->group(function () {
             return redirect('/tienda');
         }
 
+        if (Auth::user()->rol === 'contabilidad') {
+            return redirect('/contabilidad');
+        }
+
         $totalProductos = Producto::count();
 
         $stockBajo = Producto::whereColumn('existencia', '<=', 'stock_minimo')->count();
@@ -277,9 +294,14 @@ Route::middleware(['auth'])->group(function () {
             $resultado = DB::transaction(function () use ($carrito) {
                 $total = 0;
                 $itemsConfirmados = [];
+
+                // La venta en línea se registra en la agencia del producto comprado
+                $primerProducto = Producto::withoutGlobalScopes()->find(collect($carrito)->first()['producto_id']);
+
                 $venta = Venta::create([
                     'folio' => 'VEN-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4)),
                     'usuario_id' => Auth::id(),
+                    'agencia_id' => $primerProducto?->agencia_id,
                     'total' => 0,
                     'fecha_venta' => now(),
                 ]);
@@ -298,6 +320,7 @@ Route::middleware(['auth'])->group(function () {
                         'producto_id' => $producto->id,
                         'cantidad' => $item['cantidad'],
                         'precio_unitario' => $producto->precio_venta,
+                        'costo_unitario' => $producto->precio_compra,
                         'subtotal' => $subtotal,
                     ]);
 
@@ -367,7 +390,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/productos', function (Request $request) {
             $data = $request->validate([
-                'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo'],
+                'codigo' => ['required', 'string', 'max:50', Rule::unique('productos', 'codigo')->where('agencia_id', Auth::user()->agencia_id)],
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
                 'categoria' => ['nullable', 'string', 'max:100'],
@@ -391,7 +414,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::put('/productos/{producto}', function (Request $request, Producto $producto) {
             $data = $request->validate([
-                'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo,' . $producto->id],
+                'codigo' => ['required', 'string', 'max:50', Rule::unique('productos', 'codigo')->where('agencia_id', $producto->agencia_id)->ignore($producto->id)],
                 'nombre' => ['required', 'string', 'max:255'],
                 'descripcion' => ['nullable', 'string'],
                 'categoria' => ['nullable', 'string', 'max:100'],
@@ -539,6 +562,8 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Registrar ventas: solo administrador y vendedor
+    // (debe ir ANTES de "Consultar ventas" para que /ventas/crear no sea
+    // interceptada por la ruta comodín /ventas/{venta})
     Route::middleware('rol:administrador,vendedor')->group(function () {
 
         Route::get('/ventas/crear', function () {
@@ -566,8 +591,12 @@ Route::middleware(['auth'])->group(function () {
                     foreach ($data['items'] as $item) {
                         $producto = Producto::where('id', $item['producto_id'])->lockForUpdate()->first();
 
-                        if (! $producto || $producto->existencia < $item['cantidad']) {
-                            throw new \Exception("Ya no hay suficiente existencia de '{$producto->nombre}'. Disponible: " . ($producto->existencia ?? 0));
+                        if (! $producto) {
+                            throw new \Exception('Uno de los productos ya no está disponible.');
+                        }
+
+                        if ($producto->existencia < $item['cantidad']) {
+                            throw new \Exception("Ya no hay suficiente existencia de '{$producto->nombre}'. Disponible: {$producto->existencia}");
                         }
 
                         $subtotal = $producto->precio_venta * $item['cantidad'];
@@ -577,6 +606,7 @@ Route::middleware(['auth'])->group(function () {
                             'producto_id' => $producto->id,
                             'cantidad' => $item['cantidad'],
                             'precio_unitario' => $producto->precio_venta,
+                            'costo_unitario' => $producto->precio_compra,
                             'subtotal' => $subtotal,
                         ]);
 
@@ -599,8 +629,8 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // Consultar ventas: administrador, vendedor y caja
-    Route::middleware('rol:administrador,vendedor,caja')->group(function () {
+    // Consultar ventas: administrador, vendedor, caja y contabilidad
+    Route::middleware('rol:administrador,vendedor,caja,contabilidad')->group(function () {
 
         Route::get('/ventas', function () {
             $ventas = Venta::with('usuario', 'detalles.producto')
@@ -614,6 +644,54 @@ Route::middleware(['auth'])->group(function () {
             $venta->load('usuario', 'detalles.producto');
 
             return view('ventas.show', compact('venta'));
+        });
+    });
+
+    // Contabilidad: administrador y contabilidad
+    Route::middleware('rol:administrador,contabilidad')->group(function () {
+
+        Route::get('/contabilidad', function (Request $request) {
+            $periodo = $request->query('periodo') === 'semana' ? 'semana' : 'mes';
+            $dias = max(1, (int) $request->query('dias', 90));
+
+            $desde = $periodo === 'semana' ? now()->startOfWeek() : now()->startOfMonth();
+            $hasta = now()->endOfDay();
+            $etiqueta = ($periodo === 'semana' ? 'Semana' : 'Mes') . ': ' . $desde->format('d/m/Y') . ' al ' . $hasta->format('d/m/Y');
+
+            // Inventario: inversión, valor de venta y ganancia potencial
+            $inv = Producto::selectRaw('COALESCE(SUM(existencia * precio_compra), 0) as inversion, COALESCE(SUM(existencia * precio_venta), 0) as valor_venta, COALESCE(SUM(existencia), 0) as unidades')->first();
+            $inversion = (float) $inv->inversion;
+            $valorVenta = (float) $inv->valor_venta;
+            $gananciaPotencial = $valorVenta - $inversion;
+            $unidades = (int) $inv->unidades;
+
+            // Ventas del periodo y ganancia realizada
+            $ventas = Venta::with('usuario', 'detalles')
+                ->whereBetween('fecha_venta', [$desde, $hasta])
+                ->orderByDesc('fecha_venta')
+                ->get();
+
+            $totalVendido = (float) $ventas->sum('total');
+            $costoVendido = (float) $ventas->sum(fn ($v) => $v->detalles->sum(fn ($d) => $d->cantidad * $d->costo_unitario));
+            $gananciaRealizada = $totalVendido - $costoVendido;
+
+            // Stock que no se mueve: con existencia y sin ventas en los últimos N días
+            $conVentas = DetalleVenta::whereHas('venta', fn ($q) => $q->where('fecha_venta', '>=', now()->subDays($dias)))
+                ->pluck('producto_id');
+
+            $stockMuerto = Producto::where('existencia', '>', 0)
+                ->whereNotIn('id', $conVentas)
+                ->orderByRaw('existencia * precio_compra desc')
+                ->get();
+
+            $capitalInmovilizado = (float) $stockMuerto->sum(fn ($p) => $p->existencia * $p->precio_compra);
+
+            return view('contabilidad', compact(
+                'periodo', 'dias', 'etiqueta',
+                'inversion', 'valorVenta', 'gananciaPotencial', 'unidades',
+                'ventas', 'totalVendido', 'costoVendido', 'gananciaRealizada',
+                'stockMuerto', 'capitalInmovilizado'
+            ));
         });
     });
 
@@ -635,29 +713,81 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // Usuarios y permisos: solo administrador
+    // Usuarios, agencias y permisos: solo administrador
+    // Un administrador de agencia ve solo su agencia; el dueño (sin agencia) ve todas.
     Route::middleware('rol:administrador')->group(function () {
 
+        // ----- Agencias (solo el dueño) -----
+
+        Route::get('/agencias', function () {
+            abort_unless(Auth::user()->agencia_id === null, 403);
+
+            $agencias = Agencia::withCount('usuarios')->orderBy('nombre')->get();
+
+            return view('agencias.index', compact('agencias'));
+        });
+
+        Route::get('/agencias/crear', function () {
+            abort_unless(Auth::user()->agencia_id === null, 403);
+
+            return view('agencias.crear');
+        });
+
+        Route::post('/agencias', function (Request $request) {
+            abort_unless(Auth::user()->agencia_id === null, 403);
+
+            $data = $request->validate([
+                'nombre' => ['required', 'string', 'max:255', 'unique:agencias,nombre'],
+                'ciudad' => ['nullable', 'string', 'max:100'],
+            ]);
+
+            $data['activo'] = true;
+
+            Agencia::create($data);
+
+            return redirect('/agencias')->with('status', 'Agencia registrada correctamente.');
+        });
+
+        // ----- Usuarios -----
+
         Route::get('/usuarios', function () {
-            $usuarios = User::orderBy('name')->get();
+            $usuarios = User::with('agencia')
+                ->when(Auth::user()->agencia_id, fn ($q, $id) => $q->where('agencia_id', $id))
+                ->orderBy('name')
+                ->get();
+
             return view('usuarios.index', compact('usuarios'));
         });
 
         Route::get('/usuarios/crear', function () {
-            return view('usuarios.crear');
+            $agencias = Auth::user()->agencia_id === null
+                ? Agencia::where('activo', true)->orderBy('nombre')->get()
+                : collect();
+
+            return view('usuarios.crear', compact('agencias'));
         });
 
         Route::post('/usuarios', function (Request $request) {
+            $esDueno = Auth::user()->agencia_id === null;
+
             $data = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'apellidos' => ['required', 'string', 'max:255'],
                 'usuario' => ['required', 'string', 'max:50', 'unique:users,usuario'],
                 'email' => ['required', 'email', 'unique:users,email'],
                 'password' => ['required', 'string', 'min:8'],
-                'rol' => ['required', 'in:administrador,vendedor,caja,almacen,cliente'],
+                'rol' => ['required', 'in:administrador,vendedor,caja,almacen,contabilidad'],
+                'agencia_id' => [
+                    'nullable',
+                    'exists:agencias,id',
+                    Rule::requiredIf(fn () => $esDueno && $request->input('rol') !== 'administrador'),
+                ],
+            ], [
+                'agencia_id.required' => 'Elige la agencia de este usuario. Solo un administrador puede quedar sin agencia (ve todas).',
             ]);
 
             $data['activo'] = true;
+            $data['agencia_id'] = $esDueno ? ($data['agencia_id'] ?? null) : Auth::user()->agencia_id;
 
             User::create($data);
 
@@ -665,21 +795,49 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/usuarios/{usuario}/editar', function (User $usuario) {
-            return view('usuarios.editar', compact('usuario'));
+            abort_unless(Auth::user()->agencia_id === null || $usuario->agencia_id === Auth::user()->agencia_id, 404);
+
+            $agencias = Auth::user()->agencia_id === null
+                ? Agencia::orderBy('nombre')->get()
+                : collect();
+
+            return view('usuarios.editar', compact('usuario', 'agencias'));
         });
 
         Route::put('/usuarios/{usuario}', function (Request $request, User $usuario) {
+            abort_unless(Auth::user()->agencia_id === null || $usuario->agencia_id === Auth::user()->agencia_id, 404);
+
+            $esDueno = Auth::user()->agencia_id === null;
+            $esUnoMismo = $usuario->id === Auth::id();
+
             $data = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'apellidos' => ['required', 'string', 'max:255'],
                 'usuario' => ['required', 'string', 'max:50', 'unique:users,usuario,' . $usuario->id],
                 'email' => ['required', 'email', 'unique:users,email,' . $usuario->id],
-                'rol' => ['required', 'in:administrador,vendedor,caja,almacen,cliente'],
+                'rol' => ['required', 'in:administrador,vendedor,caja,almacen,contabilidad,cliente'],
                 'password' => ['nullable', 'string', 'min:8'],
+                'agencia_id' => [
+                    'nullable',
+                    'exists:agencias,id',
+                    Rule::requiredIf(fn () => $esDueno && ! $esUnoMismo && ! in_array($request->input('rol'), ['administrador', 'cliente'])),
+                ],
+            ], [
+                'agencia_id.required' => 'Elige la agencia de este usuario. Solo un administrador puede quedar sin agencia (ve todas).',
             ]);
 
             if (empty($data['password'])) {
                 unset($data['password']);
+            }
+
+            if ($esUnoMismo) {
+                // Nadie cambia su propio rol ni su propia agencia
+                $data['rol'] = $usuario->rol;
+                unset($data['agencia_id']);
+            } elseif ($esDueno) {
+                $data['agencia_id'] = $data['agencia_id'] ?? null;
+            } else {
+                unset($data['agencia_id']);
             }
 
             $usuario->update($data);
@@ -688,6 +846,8 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::patch('/usuarios/{usuario}/estado', function (User $usuario) {
+            abort_unless(Auth::user()->agencia_id === null || $usuario->agencia_id === Auth::user()->agencia_id, 404);
+
             if ($usuario->id === Auth::id()) {
                 return back()->withErrors(['estado' => 'No puedes desactivar tu propia cuenta.']);
             }
@@ -697,22 +857,4 @@ Route::middleware(['auth'])->group(function () {
             return back()->with('status', 'Estado del usuario actualizado.');
         });
     });
-});
-
-
-Route::get('/debug-log-9f21', function () {
-    $path = storage_path('logs/laravel.log');
-
-    if (! file_exists($path)) {
-        return 'No existe el archivo de log.';
-    }
-
-    $contenido = file_get_contents($path);
-    $pos = strrpos($contenido, '.ERROR:');
-
-    if ($pos === false) {
-        $pos = max(0, strlen($contenido) - 4000);
-    }
-
-    return '<pre>' . e(substr($contenido, $pos, 4000)) . '</pre>';
 });

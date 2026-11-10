@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'apellidos', 'usuario', 'email', 'password', 'rol', 'activo', 'foto'])]
+#[Fillable(['name', 'apellidos', 'usuario', 'email', 'password', 'rol', 'activo', 'foto', 'agencia_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,5 +28,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function agencia()
+    {
+        return $this->belongsTo(Agencia::class);
+    }
+
+    // Un usuario sin agencia asignada ve los datos de todas (el dueño)
+    public function veTodasLasAgencias(): bool
+    {
+        return $this->agencia_id === null;
     }
 }
