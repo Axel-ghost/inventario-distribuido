@@ -32,7 +32,7 @@
     "src": "images/pexels-atahandemir-33888376.jpg"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BSVYXXqb.css",
+    "file": "assets/app-CC0CHUng.css",
     "name": "app",
     "names": [
       "app.css"
@@ -43,8 +43,29 @@
       "assets/pexels-atahandemir-33888376-DgUyzo_Y.jpg"
     ]
   },
+  "resources/css/dark.css": {
+    "file": "assets/dark-DxAaCoLo.css",
+    "name": "dark",
+    "names": [
+      "dark.css"
+    ],
+    "src": "resources/css/dark.css",
+    "isEntry": true,
+    "assets": [
+      "assets/pexels-atahandemir-33888376-DgUyzo_Y.jpg"
+    ]
+  },
+  "resources/css/tienda.css": {
+    "file": "assets/tienda-6XODRuGE.css",
+    "name": "tienda",
+    "names": [
+      "tienda.css"
+    ],
+    "src": "resources/css/tienda.css",
+    "isEntry": true
+  },
   "resources/js/app.js": {
-    "file": "assets/app-D0LT2GCX.js",
+    "file": "assets/app-BDkyilCl.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
