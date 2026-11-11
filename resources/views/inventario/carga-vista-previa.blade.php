@@ -80,14 +80,16 @@
             <table class="data-table-clean">
                 <thead>
                     <tr>
+                        <th>#</th> <!-- NUEVA COLUMNA -->
                         <th>FILA</th>
                         <th>NO. DE PARTE</th>
                         <th>PROBLEMA</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($errores as $e)
+                    @foreach ($errores as $index => $e)
                         <tr>
+                            <td>{{ $index + 1 }}</td> <!-- NUEVA COLUMNA CON CONTADOR -->
                             <td>{{ $e['fila'] }}</td>
                             <td>{{ $e['codigo'] !== '' ? $e['codigo'] : '—' }}</td>
                             <td>{{ $e['mensaje'] }}</td>
@@ -104,6 +106,7 @@
         <table class="data-table-clean">
             <thead>
                 <tr>
+                    <th>#</th> <!-- NUEVA COLUMNA -->
                     <th>ESTADO</th>
                     <th>NO. DE PARTE</th>
                     <th>DESCRIPCIÓN</th>
@@ -115,8 +118,9 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($items as $i)
+                @foreach ($items as $index => $i)
                     <tr>
+                        <td>{{ $index + 1 }}</td> <!-- NUEVA COLUMNA CON CONTADOR -->
                         <td>
                             @if ($i['estado'] === 'nuevo')
                                 <span class="status-badge status-success">Nuevo</span>
@@ -150,14 +154,20 @@
     </div>
 
     <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 24px;">
+        
+        <!-- Cancelar a la izquierda -->
+        <a href="/inventario/carga" class="btn-cancel" style="text-decoration: none;">
+            Cancelar y subir otro archivo
+        </a>
+
+        <!-- Confirmar a la derecha (Con el mismo azul de los formularios) -->
         <form method="POST" action="/inventario/carga/{{ $token }}" style="margin: 0;">
             @csrf
-            <button type="submit" class="btn-process" style="width: auto;">
+            <button type="submit" class="btn-process" style="background: #0ea5e9 !important; border-color: #0ea5e9 !important; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4) !important;">
                 <span class="btn-label">Confirmar y cargar {{ count($items) }} productos</span>
             </button>
         </form>
 
-        <a href="/inventario/carga" style="text-decoration: underline;">Cancelar y subir otro archivo</a>
     </div>
 
 @endsection

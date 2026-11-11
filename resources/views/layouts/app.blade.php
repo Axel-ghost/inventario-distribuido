@@ -22,41 +22,52 @@
     ])
 
     <!-- 2. Fondo en el HEAD para evitar flashazos -->
-    <style>
+        <style>
         :root {
             --bg-image: url('{{ asset('images/moto.png') }}');
         }
 
         html {
             scrollbar-gutter: stable;
-            background-color: #f4f7f9;
+            background-color: transparent !important; 
         }
 
-        /* data-theme está en <html>, por eso el selector es html[data-theme] */
-        html[data-theme="dark"] {
-            background-color: #0f172a;
+        /* 1. La imagen de fondo va en el HTML (no en el body) para que cubra todo */
+        html::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2; /* Detrás de todo */
+            pointer-events: none;
+            background: var(--bg-image) center / cover no-repeat;
+        }
+
+        /* 2. Capa oscura para el modo oscuro */
+        html::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1; /* Entre la imagen y el contenido */
+            pointer-events: none;
+            background: transparent;
+            transition: background 0.3s ease;
+        }
+
+        html[data-theme="dark"]::after {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8));
         }
 
         body {
             margin: 0;
             min-height: 100vh;
-            background-color: transparent;
+            background-color: transparent !important; /* Importante: transparente para que se vea la moto */
             transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* Fondo en modo claro: SIN CAPA BLANCA */
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            pointer-events: none;
-            background: var(--bg-image) center / cover no-repeat;
-        }
-
-        /* Fondo en modo oscuro: capa oscura para que el texto resalte */
-        [data-theme="dark"] body::before {
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), var(--bg-image) center / cover no-repeat;
         }
     </style>
 </head>
@@ -77,7 +88,7 @@
                     <p class="page-subtitle">@yield('header_subtitle')</p>
                 </div>
 
-                <!-- Tarjeta de perfil del usuario -->
+                <!-- Tarjeta de perfil del usuario (con el botón de tema integrado) -->
                 <x-profile-card />
             </header>
 

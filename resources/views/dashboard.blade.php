@@ -119,8 +119,7 @@
                         Operaciones recientes
                     </h3>
                 </div>
- 
-                <a href="/actividades" class="panel-link">Ver todo</a>
+                <!-- Aquí estaba el botón "Ver todo" y fue eliminado -->
             </div>
  
             <div class="activity-list">
@@ -160,4 +159,3 @@
     </section>
  
 @endsection
- 

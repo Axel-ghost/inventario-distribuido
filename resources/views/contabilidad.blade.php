@@ -177,7 +177,9 @@
     <form method="GET" action="/contabilidad" class="no-print" style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
         <input type="hidden" name="periodo" value="{{ $periodo }}">
         <label for="dias">Sin ventas en los últimos</label>
-        <select id="dias" name="dias" onchange="this.form.submit()">
+        
+        <!-- Aquí apliqué la clase "select-verde" -->
+        <select id="dias" name="dias" onchange="this.form.submit()" class="select-verde">
             @foreach ([30, 60, 90, 180, 365] as $opcion)
                 <option value="{{ $opcion }}" @selected($dias === $opcion)>{{ $opcion }} días</option>
             @endforeach
@@ -208,6 +210,7 @@
         <table class="data-table-clean">
             <thead>
                 <tr>
+                    <th>#</th> <!-- NUEVA COLUMNA -->
                     <th>CÓDIGO</th>
                     <th>PRODUCTO</th>
                     <th>EXISTENCIA</th>
@@ -216,8 +219,9 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($stockMuerto as $p)
+                @forelse ($stockMuerto as $index => $p)
                     <tr>
+                        <td>{{ $index + 1 }}</td> <!-- NUEVA COLUMNA CON EL CONTADOR -->
                         <td>{{ $p->codigo }}</td>
                         <td>{{ $p->nombre }}</td>
                         <td>{{ $p->existencia }}</td>
@@ -226,7 +230,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5">Todo el inventario con existencia tuvo ventas en este lapso.</td>
+                        <td colspan="6">Todo el inventario con existencia tuvo ventas en este lapso.</td>
                     </tr>
                 @endforelse
             </tbody>
