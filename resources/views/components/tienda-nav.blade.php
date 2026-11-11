@@ -1,5 +1,8 @@
 <header class="tienda-nav">
-    <a href="/tienda" class="tienda-logo">CoreBuild <span>Gaming</span></a>
+    <!-- Imagen del logo en lugar de texto -->
+    <a href="/tienda" class="tienda-logo" style="display: flex; align-items: center;">
+        <img src="{{ asset('images/logo.png') }}" alt="BAJAJ" style="max-height: 40px; width: auto; object-fit: contain;">
+    </a>
 
     <nav class="tienda-nav-links">
         <a href="/tienda">Catálogo</a>

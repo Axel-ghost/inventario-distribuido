@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreBuild | @yield('title', 'Sistema')</title>
+    <title>BAJAJ | @yield('title', 'Sistema')</title>
 
     <!-- 1. Script anti-flash para el tema (antes de cargar los estilos) -->
     <script>

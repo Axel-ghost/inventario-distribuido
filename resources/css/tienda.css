@@ -22,7 +22,7 @@
     backdrop-filter: blur(8px);
     border-bottom: 1px solid rgba(255,255,255,.1);
     position: fixed; top: 0; left: 0; right: 0;
-    z-index: 1000;
+    z-index: 9999;
 }
 .nav-container {
     max-width: 1300px;
@@ -44,24 +44,22 @@
     z-index: 2;
 }
 
-/* Título que reemplaza al menú */
 .nav-title {
     position: absolute;
     left: 50%;
-    transform: translate(-50%, -15px); /* Centrado horizontalmente y arriba */
+    transform: translate(-50%, -15px);
     font-size: 0.9rem;
     font-weight: 700;
     color: #a1a1aa;
     text-transform: uppercase;
     letter-spacing: 3px;
     opacity: 0;
-    transition: opacity 0.4s ease, transform 0.4s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease;
     pointer-events: none;
     white-space: nowrap;
     z-index: 1;
 }
 
-/* Contenedor de enlaces */
 .nav-links {
     display: flex;
     align-items: center;
@@ -70,10 +68,8 @@
     opacity: 1;
     transform: translateY(0);
     transition: max-height 0.4s ease, opacity 0.3s ease, transform 0.4s ease;
-    overflow: hidden;
 }
 
-/* Estado cuando el usuario baja al catálogo */
 .tienda-navbar.navbar-compact .nav-links {
     max-height: 0;
     opacity: 0;
@@ -84,7 +80,7 @@
 
 .tienda-navbar.navbar-compact .nav-title {
     opacity: 1;
-    transform: translate(-50%, 0); /* Baja a su posición centrada */
+    transform: translate(-50%, 0);
 }
 
 .nav-links > a,
@@ -106,30 +102,60 @@
 .nav-links > a:hover,
 .nav-dropdown:hover .nav-dropdown-btn { color: #a1a1aa; }
 
-.nav-dropdown { position: relative; display: inline-block; }
+.nav-dropdown { 
+    position: relative; 
+    display: inline-block; 
+    z-index: 10000; 
+}
+
 .nav-dropdown-content {
     display: none;
     position: absolute;
-    top: 100%; left: 0;
-    min-width: 200px;
-    background: #fff;
-    border: 1px solid #1b2636;
-    border-radius: 4px;
+    top: 100%; 
+    left: 0;
+    min-width: 180px;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
     padding: 8px 0;
-    box-shadow: 0 8px 20px rgba(0,0,0,.35);
-    z-index: 100;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    z-index: 10001;
+    margin-top: 0; 
+    padding-top: 20px; 
 }
-.nav-dropdown:hover .nav-dropdown-content,
-.nav-dropdown:focus-within .nav-dropdown-content { display: flex; flex-direction: column; }
+
+.nav-dropdown:hover .nav-dropdown-content { 
+    display: flex; 
+    flex-direction: column; 
+    animation: fadeInDown 0.2s ease forwards;
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.nav-dropdown.open .nav-dropdown-btn { 
+    color: #a1a1aa; 
+}
+
 .nav-dropdown-content a {
-    color: #1b2636;
-    padding: 14px 24px;
+    color: #d4d4d8;
+    padding: 12px 20px;
     text-decoration: none;
-    font-size: .95rem;
-    font-weight: 500;
-    transition: background .2s;
+    font-size: .85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all .2s;
+    text-align: left;
 }
-.nav-dropdown-content a:hover { background: #f1f5f9; }
+
+.nav-dropdown-content a:hover { 
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    padding-left: 25px;
+}
 
 .nav-actions { 
     display: flex; 
@@ -172,21 +198,35 @@
    ========================================= */
 .tienda-hero {
     position: relative;
-    height: 100vh; min-height: 600px; max-height: 1000px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
+    height: 85vh; /* 👈 Reducimos la altura al 85% para que suba "Explora el catálogo" */
+    min-height: 600px; 
+    max-height: 1000px;
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center;
     text-align: center;
-    padding: 120px 20px 80px;
+    /* 👇 El padding-bottom de 100px empuja el texto un poquito hacia arriba */
+    padding: 40px 20px 100px; 
     background:
         linear-gradient(to bottom, rgba(10,10,10,.3) 0%, rgba(10,10,10,.7) 60%, #000 100%),
         url('https://www.motoo.com.br/fotos/2024/9/960_720/bajaj_dominar-250_2025_1_06092024_60675_960_720.jpg') center/cover no-repeat;
+    background-position: center 30%; /* 👈 Ajusta la moto para que se vea bien al recortar */
 }
+
 .tienda-hero-overlay {
     position: absolute; inset: 0;
     background: radial-gradient(circle at center, transparent 10%, rgba(10,10,10,.8) 90%);
     pointer-events: none;
 }
-.tienda-hero-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; max-width: 1000px; }
+.tienda-hero-content { 
+    position: relative; 
+    z-index: 2; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    max-width: 1000px; 
+}
 .hero-badge {
     font-size: .85rem;
     font-weight: 700;
@@ -206,7 +246,9 @@
     text-transform: uppercase;
     text-shadow: 0 10px 40px rgba(0,0,0,.6);
 }
-.text-highlight { -webkit-text-stroke: 1px rgba(255,255,255,.3); }
+.text-highlight { 
+    -webkit-text-stroke: 1px rgba(255,255,255,.3); 
+}
 .hero-subtitle {
     font-size: clamp(1rem,2vw,1.25rem);
     color: #d4d4d8;
@@ -214,27 +256,37 @@
     margin: 0 0 45px;
     max-width: 650px;
 }
+
+/* 👇 ANIMACIÓN SUBIDA Y CENTRADA 👇 */
 .scroll-indicator {
-    position: absolute; bottom: 40px; left: 50%;
+    position: absolute; 
+    bottom: 40px; /* 👈 Aquí controlas qué tan abajo está. Súbelo a 50px o bájalo a 20px a tu gusto */
+    left: 50%;
     transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    color: #a1a1aa;
-    font-size: .8rem;
-    letter-spacing: 2px;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 12px;
+    color: #ffffff; 
+    font-size: 1rem; 
+    font-weight: 600;
+    letter-spacing: 3px;
     text-transform: uppercase;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
 }
+
 .arrow-down {
-    width: 1px; height: 40px;
+    width: 2px; 
+    height: 50px; 
     background: linear-gradient(to bottom, #fff 50%, transparent 50%);
     background-size: 100% 200%;
     animation: scrollArrow 2s infinite;
 }
+
 @keyframes scrollArrow {
     0%   { background-position: 100% 0%; }
     100% { background-position: 100% -200%; }
 }
-
-
 /* =========================================
    4. CONTENEDOR PRINCIPAL
    ========================================= */
@@ -318,7 +370,6 @@
     transition: background .3s;
 }
 .btn-buscar:hover { background: #e4e4e7; }
-
 
 /* =========================================
    6. FILTROS
@@ -479,6 +530,7 @@
     display: block;
     width: 100%;
     height: 100%;
+    cursor: pointer; /* ✅ CAMBIO: ahora es interactivo, refuerza el cursor */
 }
 
 .categoria-pasarela .producto-card-imagen {
@@ -521,7 +573,7 @@
     width: 100vw;
     margin-left: calc(50% - 50vw);
     min-height: 500px;
-    overflow: hidden; /* Evita scroll horizontal */
+    overflow: hidden;
 }
 .carousel-container {
     width: 100%;
@@ -607,7 +659,6 @@
 .carousel-container.mode-5 .carousel-item.far-prev {
     opacity: .55;
     z-index: 3;
-    /* 50vw es el centro. Restamos 320px (ancho) + 20px (margen) = 340px */
     transform: translateX(calc(-50vw + 340px)) scale(.75);
     filter: blur(2px) brightness(.7);
     pointer-events: auto;
@@ -622,7 +673,6 @@
     cursor: pointer;
 }
 
-/* (Manten el resto de la sección 11 igual) */
 .carousel-container.mode-2 .carousel-track {
     height: auto;
     perspective: none;
@@ -688,7 +738,6 @@
    ========================================= */
 @media (min-width: 1400px) {
     .carousel-item { width: 340px; }
-    /* 340px (ancho) + 20px (margen) = 360px */
     .carousel-container.mode-5 .carousel-item.far-prev { transform: translateX(calc(-50vw + 360px)) scale(.78); }
     .carousel-container.mode-5 .carousel-item.far-next { transform: translateX(calc(50vw - 360px)) scale(.78); }
 }
@@ -718,7 +767,6 @@
     .carousel-item.next { transform: translateX(75%) scale(.85); }
     .carousel-item.active { transform: translateX(0) scale(1); }
 
-    /* 260px (ancho) + 20px (margen) = 280px */
     .carousel-container.mode-5 .carousel-item.far-prev { transform: translateX(calc(-50vw + 280px)) scale(.70); }
     .carousel-container.mode-5 .carousel-item.far-next { transform: translateX(calc(50vw - 280px)) scale(.70); }
 
@@ -733,7 +781,207 @@
     .carousel-item { width: 240px; }
     .producto-card-pasarela .producto-card-imagen { height: 160px; }
 
-    /* 240px (ancho) + 20px (margen) = 260px */
     .carousel-container.mode-5 .carousel-item.far-prev { transform: translateX(calc(-50vw + 260px)) scale(.70); }
     .carousel-container.mode-5 .carousel-item.far-next { transform: translateX(calc(50vw - 260px)) scale(.70); }
 }
+
+/* =========================================
+   ESTILOS EXCLUSIVOS PARA LA VISTA DEL CARRITO
+   ========================================= */
+
+/* Forzamos a que el fondo del carrito use el mismo gradiente radial que el body */
+.carrito-wrapper {
+    max-width: 1000px;
+    margin: 120px auto 60px auto; /* Margen superior para que no lo tape el navbar fijo */
+    padding: 0 20px;
+}
+
+.carrito-titulo {
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.carrito-card {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.carrito-tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.carrito-tabla th {
+    text-align: left;
+    padding: 15px 10px;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    letter-spacing: 1px;
+}
+
+.carrito-tabla td {
+    padding: 20px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    vertical-align: middle;
+}
+
+.carrito-producto {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.carrito-producto img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.carrito-producto-info h4 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.carrito-producto-info span {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.carrito-cantidad {
+    width: 70px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+}
+
+.carrito-cantidad:focus {
+    border-color: #0ea5e9;
+}
+
+.btn-eliminar-item {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-eliminar-item:hover {
+    background: #ef4444;
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+.carrito-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.carrito-total span {
+    display: block;
+    font-size: 14px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.carrito-total strong {
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.btn-volver-catalogo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-volver-catalogo:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.carrito-vacio {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.carrito-vacio h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.carrito-vacio p {
+    color: #94a3b8;
+    margin-bottom: 25px;
+}
+
+/* Arreglo para que los links del menú del carrito no salgan morados */
+.tienda-nav-links a {
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+.tienda-nav-links a:hover {
+    color: #a1a1aa !important;
+}
+
+#vista-pasarela {
+    scroll-margin-top: 100px; /* Ajusta según el alto de tu barra */
+}
+
+/* =========================================
+   14. ✅ CAMBIO: SCROLL-MARGIN-TOP PARA SECCIONES
+   Evita que el navbar fijo tape las secciones al hacer scroll con anclas
+   ========================================= */
+#promos,
+#financiamiento,
+#servicio,
+#carrito,
+#motos,
+#inicio {
+    scroll-margin-top: 90px; /* Ajusta si tu navbar es más alta/baja */
+}
+.nav-dropdown { position: relative; display: inline-block; }

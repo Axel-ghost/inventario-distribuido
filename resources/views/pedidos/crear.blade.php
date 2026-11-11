@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreBuild | Nueva requisición</title>
+    <title>BAJAJ | Nueva requisición</title>
     
     @vite(['resources/css/app.css', 'resources/css/dark.css', 'resources/js/app.js'])
 

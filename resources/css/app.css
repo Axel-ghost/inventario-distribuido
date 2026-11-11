@@ -82,6 +82,43 @@ body {
     outline-offset: 3px;
 }
 
+.login-card .catalog-back-button {
+    display: flex !important;
+    width: max-content !important;
+    margin: 15px auto 0 auto !important;
+    padding: 12px 24px !important;
+    font-size: 12px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    transform: none !important;
+    transition: all 0.3s ease !important;
+    background: rgba(30, 41, 59, 0.25) !important;
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+
+.login-card .catalog-back-button:hover {
+    background: #0ea5e9 !important;
+    border-color: #0ea5e9 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4) !important;
+}
+
+html[data-theme="light"] .login-card .catalog-back-button {
+    background: rgba(255, 255, 255, 0.4) !important;
+    border: 2px solid #1b2636 !important;
+    color: #1b2636 !important;
+    -webkit-text-fill-color: #1b2636 !important;
+    text-shadow: none !important;
+}
+
+html[data-theme="light"] .login-card .catalog-back-button:hover {
+    background: #1b2636 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border-color: #1b2636 !important;
+}
+
 /* Botón de Imprimir (Fijo en azul, sin brillo) */
 .dashboard-content .ticket-actions .btn-process {
     display: inline-flex;

@@ -3,8 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreBuild | Catálogo de Motocicletas</title>
+    <title>BAJAJ | Catálogo de Motocicletas</title>
     @vite(['resources/css/tienda.css', 'resources/js/app.js'])
+
+    <!-- Scroll suave para las secciones -->
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
 
     <script>
         if ('scrollRestoration' in history) {
@@ -22,32 +29,37 @@
 
 <body class="tienda-body">
 
+    <!-- MENÚ DE NAVEGACIÓN -->
     <nav class="tienda-navbar">
         <div class="nav-container">
-            <a href="/" class="nav-logo">CoreBuild</a>
+            <a href="/" class="nav-logo">
+                <img src="{{ asset('images/logo.png') }}" alt="BAJAJ" style="max-height: 45px; width: auto; object-fit: contain;">
+            </a>
             
             <span id="nav-title" class="nav-title">EXPLORA EL CATÁLOGO</span>
 
             <div class="nav-links">
                 <div class="nav-dropdown">
-                    <button class="nav-dropdown-btn">MOTOS ▾</button>
+                    <!-- Se usa onclick directo para garantizar que abra sin fallos de JS -->
+                    <button class="nav-dropdown-btn" type="button">MOTOS ▾</button>
                     <div class="nav-dropdown-content">
-                        <a href="/tienda?categoria=boxer" class="filtro-trigger">Boxer</a>
-                        <a href="/tienda?categoria=dominar" class="filtro-trigger">Dominar</a>
-                        <a href="/tienda?categoria=platina" class="filtro-trigger">Platina</a>
-                        <a href="/tienda?categoria=pulsar" class="filtro-trigger">Pulsar</a>
-                        <a href="/tienda?categoria=avenger" class="filtro-trigger">Avenger</a>
+                        <!-- Las categorías mueven el carrusel sin recargar -->
+                        <a href="#vista-pasarela" class="filtro-carrusel" data-target="0">Boxer</a>
+                        <a href="#vista-pasarela" class="filtro-carrusel" data-target="1">Dominar</a>
+                        <a href="#vista-pasarela" class="filtro-carrusel" data-target="2">Platina</a>
+                        <a href="#vista-pasarela" class="filtro-carrusel" data-target="3">Pulsar</a>
+                        <a href="#vista-pasarela" class="filtro-carrusel" data-target="4">Avenger</a>
                     </div>
                 </div>
-                <a href="/promos">PROMOS</a>
-                <a href="/financiamiento">FINANCIAMIENTO</a>
-                <a href="/servicio">SERVICIO</a>
+                <a href="#promos">PROMOS</a>
+                <a href="#financiamiento">FINANCIAMIENTO</a>
+                <a href="#servicio">SERVICIO</a>
             </div>
             
             <div class="nav-actions">
-                <a href="/carrito" class="nav-cart">🛒</a>
+                <!-- El 🛒 abre la vista real del carrito -->
+                <a href="/tienda/carrito" class="nav-cart" title="Ver mi carrito">🛒</a>
                 
-                <!-- Botón de Cerrar Sesión -->
                 <form method="POST" action="{{ route('logout') }}" style="display: inline-block; margin: 0;">
                     @csrf
                     <button type="submit" class="nav-logout" title="Cerrar Sesión">
@@ -62,7 +74,8 @@
         </div>
     </nav>
 
-    <section class="tienda-hero">
+    <!-- SECCIÓN 1: HERO (PORTADA) -->
+    <section class="tienda-hero" id="inicio">
         <div class="tienda-hero-overlay"></div>
         <div class="tienda-hero-content">
             <span class="hero-badge">CATÁLOGO 2026</span>
@@ -78,13 +91,10 @@
         </div>
     </section>
 
-    <main class="tienda-main">
+    <!-- SECCIÓN 2: CATÁLOGO DE MOTOS -->
+    <main class="tienda-main" id="motos">
         <div class="tienda-main-inner">
-
-            @if (session('status'))
-                <p class="tienda-status">{{ session('status') }}</p>
-            @endif
-
+            
             <div class="tienda-header-catalogo reveal" id="explora-catalogo">
                 <h2 class="seccion-titulo">
                     @if(request('categoria'))
@@ -96,16 +106,6 @@
                 @if(request('categoria'))
                     <a href="/tienda" class="btn-volver-categorias filtro-trigger">← Volver a categorías</a>
                 @endif
-            </div>
-
-            <div class="tienda-buscador-wrapper reveal">
-                <form method="GET" action="/tienda" class="tienda-buscador-input">
-                    @if(request('categoria'))
-                        <input type="hidden" name="categoria" value="{{ request('categoria') }}">
-                    @endif
-                    <input type="text" name="q" placeholder="Busca tu modelo ideal..." value="{{ request('q') }}">
-                    <button type="submit" class="btn-buscar">Buscar</button>
-                </form>
             </div>
 
             <!-- CARRUSEL DE CATEGORÍAS -->
@@ -125,7 +125,10 @@
                         <div class="carousel-track" id="carousel-track">
                             @foreach ($categorias as $index => $cat)
                                 <div class="carousel-item" data-index="{{ $index }}">
-                                    <a href="/tienda?categoria={{ $cat['slug'] }}" class="carousel-link">
+                                    <!-- Las tarjetas mueven el carrusel -->
+                                    <a href="#vista-pasarela"
+                                       class="carousel-link filtro-carrusel"
+                                       data-target="{{ $index }}">
                                         <div class="producto-card-pasarela categoria-pasarela">
                                             <div class="producto-card-imagen">
                                                 <img src="{{ $cat['img'] }}" alt="{{ $cat['nombre'] }}">
@@ -138,21 +141,20 @@
                                 </div>
                             @endforeach
                         </div>
-
                         <div class="carousel-controls">
-                            <button id="btn-prev" class="carousel-btn">&#10094;</button>
+                            <button id="btn-prev" class="carousel-btn" type="button">&#10094;</button>
                             <div class="carousel-dots" id="carousel-dots">
                                 @foreach ($categorias as $index => $cat)
                                     <span class="dot" data-index="{{ $index }}"></span>
                                 @endforeach
                             </div>
-                            <button id="btn-next" class="carousel-btn">&#10095;</button>
+                            <button id="btn-next" class="carousel-btn" type="button">&#10095;</button>
                         </div>
                     </div>
                 </div>
             @endif
 
-            <!-- GRID DE PRODUCTOS -->
+            <!-- GRID DE PRODUCTOS (Se muestra al filtrar o buscar) -->
             @if(request('categoria') || request('q'))
                 <div class="tienda-grid reveal mt-5" id="vista-cuadricula">
                     @forelse ($productos as $producto)
@@ -161,76 +163,137 @@
                                 <img src="{{ $producto->imagen_url ?: 'https://picsum.photos/seed/' . $producto->id . '/800/600' }}" alt="{{ $producto->nombre }}">
                             </div>
                             <div class="producto-card-body">
-                                @if ($producto->categoria)
-                                    <span class="producto-categoria">{{ $producto->categoria }}</span>
-                                @endif
                                 <h3 class="producto-nombre">{{ $producto->nombre }}</h3>
                                 <p class="producto-desc">{{ Str::limit($producto->descripcion, 80) }}</p>
-                                
                                 <div class="producto-card-footer">
                                     <strong class="producto-precio">${{ number_format($producto->precio_venta, 2) }}</strong>
                                     <form method="POST" action="/tienda/carrito/agregar">
                                         @csrf
                                         <input type="hidden" name="producto_id" value="{{ $producto->id }}">
-                                        <button type="submit" class="btn-agregar">Cotizar</button>
+                                        <button type="submit" class="btn-agregar">Agregar</button>
                                     </form>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div class="tienda-vacia">
-                            <p>No encontramos motocicletas con esa búsqueda.</p>
-                        </div>
+                        <div class="tienda-vacia"><p>No encontramos motocicletas.</p></div>
                     @endforelse
                 </div>
             @endif
-
         </div>
     </main>
 
+    <!-- SECCIÓN 3: PROMOS -->
+    <section id="promos" class="tienda-main" style="background: #0f172a; padding-top: 80px;">
+        <div class="tienda-main-inner" style="text-align: center;">
+            <h2 class="seccion-titulo">PROMOCIONES</h2>
+            <div class="form-card" style="max-width: 800px; margin: 30px auto;">
+                <h3 style="color: #60a5fa; font-size: 26px;">¡Mes sin intereses!</h3>
+                <p style="color: #94a3b8; margin-top: 10px;">Aprovecha nuestras ofertas en toda la línea Bajaj.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 4: FINANCIAMIENTO -->
+    <section id="financiamiento" class="tienda-main" style="padding-top: 80px;">
+        <div class="tienda-main-inner" style="text-align: center;">
+            <h2 class="seccion-titulo">FINANCIAMIENTO</h2>
+            <div class="form-card" style="max-width: 800px; margin: 30px auto;">
+                <h3 style="color: #60a5fa; font-size: 24px;">Cotiza tu crédito</h3>
+                <p style="color: #94a3b8; margin-top: 10px;">Déjanos tus datos y un asesor se contactará contigo.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 5: SERVICIO -->
+    <section id="servicio" class="tienda-main" style="background: #0f172a; padding-top: 80px; padding-bottom: 100px;">
+        <div class="tienda-main-inner" style="text-align: center;">
+            <h2 class="seccion-titulo">SERVICIO TÉCNICO</h2>
+            <div class="form-card" style="max-width: 800px; margin: 30px auto;">
+                <h3 style="color: #60a5fa; font-size: 24px;">Agenda tu mantenimiento</h3>
+                <p style="color: #94a3b8; margin-top: 10px;">Contáctanos para programar la revisión de tu moto.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCRIPTS DE LA TIENDA -->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Animaciones de scroll
-            const reveals = document.querySelectorAll(".reveal");
-            const revealOnScroll = () => {
-                const windowHeight = window.innerHeight;
-                reveals.forEach((reveal) => {
-                    if (reveal.getBoundingClientRect().top < windowHeight - 100) {
-                        reveal.classList.add("active");
-                    }
-                });
-            };
-            window.addEventListener("scroll", revealOnScroll);
-            revealOnScroll();
+    document.addEventListener("DOMContentLoaded", function() {
 
-            // Guardar scroll (menú y categorías)
-            const elementosFiltro = document.querySelectorAll('.filtro-trigger, .carousel-link');
-            elementosFiltro.forEach(elemento => {
-                elemento.addEventListener('click', function() {
-                    sessionStorage.setItem('scrollPosCatalogo', window.scrollY);
-                });
-            });
-
-            // Navbar compacto
-            const navbar = document.querySelector('.tienda-navbar');
-            const heroSection = document.querySelector('.tienda-hero');
-            if (navbar && heroSection) {
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (!entry.isIntersecting) {
-                            navbar.classList.add('navbar-compact');
-                        } else {
-                            navbar.classList.remove('navbar-compact');
-                        }
-                    });
-                }, { rootMargin: "0px", threshold: 0.1 });
-                observer.observe(heroSection);
+        /* 1. Cerrar el dropdown si se hace clic afuera */
+        document.addEventListener('click', function(e) {
+            const dropdown = document.querySelector('.nav-dropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
             }
+        });
 
-            // Carrusel 3D
-            const track = document.getElementById('carousel-track');
-            if (!track) return;
+        /* 2. Animaciones de scroll (reveal) */
+        const reveals = document.querySelectorAll(".reveal");
+        const revealOnScroll = () => {
+            const windowHeight = window.innerHeight;
+            reveals.forEach((reveal) => {
+                if (reveal.getBoundingClientRect().top < windowHeight - 100) {
+                    reveal.classList.add("active");
+                }
+            });
+        };
+        window.addEventListener("scroll", revealOnScroll);
+        revealOnScroll();
 
+        /* 3. Guardar scroll en el catálogo */
+        const elementosFiltro = document.querySelectorAll('.filtro-trigger, .carousel-link');
+        elementosFiltro.forEach(elemento => {
+            elemento.addEventListener('click', function() {
+                sessionStorage.setItem('scrollPosCatalogo', window.scrollY);
+            });
+        });
+
+        /* 4. NAVBAR INTELIGENTE (ScrollSpy por posiciones exactas) */
+        const navbar = document.querySelector('.tienda-navbar');
+        const heroSection = document.querySelector('.tienda-hero');
+        const promosSection = document.getElementById('promos');
+
+        const controlarNavbar = () => {
+            if (!navbar || !heroSection || !promosSection) return;
+
+            const scrollActual = window.scrollY;
+            const finHero = heroSection.offsetTop + heroSection.offsetHeight - 100; 
+            const inicioPromos = promosSection.offsetTop - 100; 
+
+            // Si estamos entre el final del hero y el inicio de promos -> Compacto
+            if (scrollActual > finHero && scrollActual < inicioPromos) {
+                navbar.classList.add('navbar-compact');
+            } else {
+                // En cualquier otro lugar (Hero o Promos en adelante) -> Menú completo
+                navbar.classList.remove('navbar-compact');
+            }
+        };
+
+        window.addEventListener('scroll', controlarNavbar);
+        controlarNavbar(); 
+
+        /* 5. Scroll suave para anclas del menú (PROMOS, FINANCIAMIENTO, SERVICIO) */
+        document.querySelectorAll(
+            '.nav-links > a[href^="#"], .nav-dropdown-content a[href^="#"]'
+        ).forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (this.classList.contains('filtro-carrusel')) return;
+
+                const target = document.querySelector(href);
+                if (target) {
+                    e.preventDefault();
+                    const dropdown = document.querySelector('.nav-dropdown');
+                    if (dropdown) dropdown.classList.remove('open'); // Cierra menú
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        /* 6. Carrusel 3D */
+        const track = document.getElementById('carousel-track');
+        if (track) {
             const container = track.closest('.carousel-container');
             const items = document.querySelectorAll('.carousel-item');
             const dots = document.querySelectorAll('.carousel-dots .dot');
@@ -238,55 +301,80 @@
             const btnNext = document.getElementById('btn-next');
             const total = items.length;
 
-            if (total === 0) return;
+            if (total > 0) {
+                let currentIndex = parseInt(container.getAttribute('data-active-index')) || 0;
+                const useFar = total >= 5;
 
-            let currentIndex = parseInt(container.getAttribute('data-active-index')) || 0;
-            const useFar = total >= 5;
+                function updateCarousel() {
+                    items.forEach((item, index) => {
+                        item.className = 'carousel-item';
+                        let offset = index - currentIndex;
+                        const half = useFar ? 2 : 1;
 
-            function updateCarousel() {
-                items.forEach((item, index) => {
-                    item.className = 'carousel-item';
+                        if (offset < -half) offset += total;
+                        if (offset > half) offset -= total;
 
-                    let offset = index - currentIndex;
-                    const half = useFar ? 2 : 1;
-                    if (offset < -half) offset += total;
-                    if (offset > half) offset -= total;
+                        if (offset === 0) item.classList.add('active');
+                        else if (offset === -1) item.classList.add('prev');
+                        else if (offset === 1) item.classList.add('next');
+                        else if (useFar && offset === -2) item.classList.add('far-prev');
+                        else if (useFar && offset === 2) item.classList.add('far-next');
+                        else item.classList.add('hidden');
+                    });
 
-                    if (offset === 0) item.classList.add('active');
-                    else if (offset === -1) item.classList.add('prev');
-                    else if (offset === 1) item.classList.add('next');
-                    else if (useFar && offset === -2) item.classList.add('far-prev');
-                    else if (useFar && offset === 2) item.classList.add('far-next');
-                    else item.classList.add('hidden');
-                });
+                    dots.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
+                }
 
-                dots.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
-            }
-
-            function nextSlide() {
-                currentIndex = (currentIndex + 1) % total;
-                updateCarousel();
-            }
-
-            function prevSlide() {
-                currentIndex = (currentIndex - 1 + total) % total;
-                updateCarousel();
-            }
-
-            if(btnNext && btnPrev) {
-                btnNext.addEventListener('click', nextSlide);
-                btnPrev.addEventListener('click', prevSlide);
-            }
-
-            dots.forEach((dot, i) => {
-                dot.addEventListener('click', () => {
-                    currentIndex = i;
+                function nextSlide() {
+                    currentIndex = (currentIndex + 1) % total;
                     updateCarousel();
-                });
-            });
+                }
 
-            updateCarousel();
-        });
+                function prevSlide() {
+                    currentIndex = (currentIndex - 1 + total) % total;
+                    updateCarousel();
+                }
+
+                if (btnNext && btnPrev) {
+                    btnNext.addEventListener('click', nextSlide);
+                    btnPrev.addEventListener('click', prevSlide);
+                }
+
+                dots.forEach((dot, i) => {
+                    dot.addEventListener('click', () => {
+                        currentIndex = i;
+                        updateCarousel();
+                    });
+                });
+
+                updateCarousel();
+
+                /* 7. Filtros del menú "Motos" + tarjetas (Redirección al carrusel) */
+                const linksCarrusel = document.querySelectorAll('.filtro-carrusel');
+                linksCarrusel.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+
+                        const targetIndex = parseInt(this.getAttribute('data-target'));
+                        if (!isNaN(targetIndex)) {
+                            currentIndex = targetIndex;
+                            updateCarousel();
+                        }
+
+                        // Cerramos el dropdown
+                        const dropdown = document.querySelector('.nav-dropdown');
+                        if (dropdown) dropdown.classList.remove('open');
+
+                        // Hacemos scroll hasta el carrusel
+                        const carruselSection = document.getElementById('vista-pasarela');
+                        if (carruselSection) {
+                            carruselSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    });
+                });
+            }
+        }
+    });
     </script>
 </body>
 </html>
