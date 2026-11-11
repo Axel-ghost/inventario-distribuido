@@ -79,9 +79,12 @@
             <p style="opacity: .7; margin-bottom: 16px;">No puedes cambiar tu propio rol ni tu agencia.</p>
         @endif
 
-        <button type="submit" class="btn-process">
-            <span class="btn-label">Guardar cambios</span>
-        </button>
+        <div class="form-actions">
+            <a href="/usuarios" class="btn-cancel">Cancelar</a>
+            <button type="submit" class="btn-process">
+                <span class="btn-label">Guardar cambios</span>
+            </button>
+        </div>
 
     </form>
 

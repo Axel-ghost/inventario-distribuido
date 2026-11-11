@@ -71,9 +71,12 @@
             </div>
         @endif
 
-        <button type="submit" class="btn-process">
-            <span class="btn-label">Registrar usuario</span>
-        </button>
+        <div class="form-actions">
+            <a href="/usuarios" class="btn-cancel">Cancelar</a>
+            <button type="submit" class="btn-process">
+                <span class="btn-label">Registrar usuario</span>
+            </button>
+        </div>
 
     </form>
 

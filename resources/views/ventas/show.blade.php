@@ -10,7 +10,8 @@
     <div class="ticket" id="ticket">
 
         <div class="ticket-header">
-            <h3>CoreBuild Gaming</h3>
+            <!-- Logo de Bajaj en lugar del texto -->
+            <img src="{{ asset('images/logo.png') }}" alt="BAJAJ" style="max-height: 60px; object-fit: contain; margin: 0 auto 10px auto; display: block;">
             <p>Comprobante de venta</p>
         </div>
 
