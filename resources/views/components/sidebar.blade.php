@@ -36,6 +36,11 @@
         @endif
 
         @if (in_array($rol, ['administrador', 'almacen']))
+            <a href="/inventario/carga" class="nav-item {{ $activePage === 'carga' ? 'active' : '' }}">
+                <span>▥</span>
+                Carga masiva
+            </a>
+
             <a href="/pedidos" class="nav-item {{ $activePage === 'pedidos' ? 'active' : '' }}">
                 <span>▱</span>
                 Pedidos
